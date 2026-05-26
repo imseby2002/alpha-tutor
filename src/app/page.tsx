@@ -4,22 +4,24 @@ import { useState } from 'react';
 import FocusMonitor from './components/FocusMonitor';
 import MasteryMap from './components/MasteryMap';
 
+const DIFFICULTY_LABEL: Record<string, string> = {
+  Medium: '中等',
+  Hard: '困難',
+};
+
 export default function StudentPortal() {
   const [level, setLevel] = useState(1);
   const [xp, setXp] = useState(350);
   const [isFocused, setIsFocused] = useState(true);
   
-  // App States: 'diagnostic' | 'teaching' | 'adaptive'
   const [mode, setMode] = useState<'diagnostic' | 'teaching' | 'adaptive'>('diagnostic');
   const [diagnosticStep, setDiagnosticStep] = useState(0);
 
-  // Teaching State
-  const [teachingTopic, setTeachingTopic] = useState("Quadratic Equations");
+  const [teachingTopic, setTeachingTopic] = useState("二次方程式");
   const [teachingComplete, setTeachingComplete] = useState(false);
 
-  // Mock adaptive question logic
   const [currentQuestion, setCurrentQuestion] = useState({
-    text: "Calculate the vertex of the parabola: y = 2x² - 8x + 5",
+    text: "求拋物線頂點：y = 2x² - 8x + 5",
     options: ["(2, -3)", "(4, 5)", "(-2, 3)", "(0, 5)"],
     correct: 0,
     difficulty: "Medium"
@@ -29,10 +31,9 @@ export default function StudentPortal() {
     if (diagnosticStep < 1) {
       setDiagnosticStep(prev => prev + 1);
     } else {
-      // After diagnostic, we know what they need to learn, so we start teaching!
       setMode('teaching');
       setTeachingComplete(false);
-      alert("Diagnostic complete! You need to learn about Quadratic Equations. Starting the micro-lesson...");
+      alert("診斷完成！你需要加強「二次方程式」。即將開始微課程…");
     }
   };
 
@@ -50,17 +51,16 @@ export default function StudentPortal() {
         }
         return next;
       });
-      alert("Correct! You are mastering this topic.");
+      alert("答對了！你正在掌握這個主題。");
       setCurrentQuestion({
-        text: "Determine the roots of the equation: 3x² - 12x + 12 = 0",
+        text: "求方程式根：3x² - 12x + 12 = 0",
         options: ["x = 2", "x = 4", "x = -2", "x = 0"],
         correct: 0,
         difficulty: "Hard"
       });
     } else {
-      alert("Incorrect. Let's step back and review the core concept again.");
-      // Drop back to teaching mode to re-explain
-      setTeachingTopic("Vertex Formula (-b/2a) Explained visually");
+      alert("答錯了，我們回到核心概念再複習一次。");
+      setTeachingTopic("頂點公式 (-b/2a) 圖解說明");
       setTeachingComplete(false);
       setMode('teaching');
     }
@@ -69,10 +69,10 @@ export default function StudentPortal() {
   return (
     <div style={{ padding: '2rem', maxWidth: '1200px', margin: '0 auto' }}>
       
-      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
           <h1 className="text-gradient">Alpha Tutor</h1>
-          <p style={{ color: 'var(--warning)', marginTop: '0.5rem' }}>Level {level} • {xp} XP</p>
+          <p style={{ color: 'var(--warning)', marginTop: '0.5rem' }}>等級 {level} • {xp} XP</p>
         </div>
         
         <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
@@ -86,15 +86,14 @@ export default function StudentPortal() {
               boxShadow: isFocused ? '0 0 10px var(--accent)' : '0 0 10px var(--danger)'
             }}></span>
             <span style={{ fontSize: '0.875rem', fontWeight: 600 }}>
-              {isFocused ? 'Focused' : 'Distracted'}
+              {isFocused ? '專注中' : '分心'}
             </span>
           </div>
         </div>
       </header>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: '2rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 300px', gap: '2rem' }}>
         
-        {/* Main Learning Area */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
           
           <div className="glass-panel hover-scale" style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
@@ -107,16 +106,16 @@ export default function StudentPortal() {
                 borderRadius: '0.75rem',
                 color: 'var(--danger)'
               }}>
-                <strong>Attention Alert:</strong> We noticed you might be distracted. Remember, finishing this module efficiently earns you more free time!
+                <strong>專注提醒：</strong> 系統偵測到你可能分心了。有效率完成本單元，就能爭取更多自由時間！
               </div>
             )}
 
             {mode === 'diagnostic' && (
               <div>
-                <h2 style={{ fontSize: '1.25rem', marginBottom: '0.5rem', color: 'var(--warning)' }}>Step 1: Diagnostic Assessment (Question {diagnosticStep + 1}/2)</h2>
-                <p style={{ color: 'rgba(255,255,255,0.6)', marginBottom: '1rem' }}>We are calibrating the AI to your exact level. Don&apos;t worry if it&apos;s hard!</p>
+                <h2 style={{ fontSize: '1.25rem', marginBottom: '0.5rem', color: 'var(--warning)' }}>步驟 1：診斷評量（第 {diagnosticStep + 1}/2 題）</h2>
+                <p style={{ color: 'rgba(255,255,255,0.6)', marginBottom: '1rem' }}>正在校準 AI 以符合你的程度，題目偏難也別擔心！</p>
                 <div style={{ background: 'var(--surface)', padding: '2rem', borderRadius: '0.75rem', fontSize: '1.25rem', textAlign: 'center', border: '1px solid var(--glass-border)' }}>
-                  Solve for x: 5x + 15 = 40
+                  解 x：5x + 15 = 40
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginTop: '2rem' }}>
                   {["x = 3", "x = 5", "x = 7", "x = 25"].map((opt, i) => (
@@ -130,10 +129,9 @@ export default function StudentPortal() {
 
             {mode === 'teaching' && (
               <div>
-                <h2 style={{ fontSize: '1.25rem', marginBottom: '0.5rem', color: 'var(--accent)' }}>Step 2: AI Micro-Learning</h2>
-                <p style={{ color: 'rgba(255,255,255,0.6)', marginBottom: '1rem' }}>Watch this 2-minute explanation of {teachingTopic}</p>
+                <h2 style={{ fontSize: '1.25rem', marginBottom: '0.5rem', color: 'var(--accent)' }}>步驟 2：AI 微課程</h2>
+                <p style={{ color: 'rgba(255,255,255,0.6)', marginBottom: '1rem' }}>觀看約 2 分鐘的「{teachingTopic}」講解</p>
                 
-                {/* Mock Video / Interactive Diagram Player */}
                 <div style={{ 
                   background: '#000', 
                   aspectRatio: '16/9', 
@@ -147,9 +145,8 @@ export default function StudentPortal() {
                   overflow: 'hidden'
                 }}>
                   <div style={{ fontSize: '4rem', opacity: 0.8 }}>▶️</div>
-                  <p style={{ marginTop: '1rem', color: 'rgba(255,255,255,0.6)' }}>[Interactive Animation: Graphing a Parabola]</p>
+                  <p style={{ marginTop: '1rem', color: 'rgba(255,255,255,0.6)' }}>[互動動畫：拋物線作圖]</p>
                   
-                  {/* Mock progress bar */}
                   <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '4px', background: 'rgba(255,255,255,0.2)' }}>
                     <div style={{ width: '100%', height: '100%', background: 'var(--primary)', animation: 'progress 10s linear' }}></div>
                   </div>
@@ -164,7 +161,7 @@ export default function StudentPortal() {
 
                 <div style={{ marginTop: '2rem', display: 'flex', justifyContent: 'center' }}>
                   <button className="btn-primary" onClick={handleFinishTeaching} style={{ width: '100%', maxWidth: '300px' }}>
-                    I understand, let&apos;s practice!
+                    我懂了，開始練習！
                   </button>
                 </div>
               </div>
@@ -172,16 +169,18 @@ export default function StudentPortal() {
 
             {mode === 'adaptive' && (
               <div>
-                <h2 style={{ fontSize: '1.25rem', marginBottom: '0.5rem', color: 'var(--primary)' }}>Step 3: Adaptive Practice</h2>
+                <h2 style={{ fontSize: '1.25rem', marginBottom: '0.5rem', color: 'var(--primary)' }}>步驟 3：自適應練習</h2>
                 <p style={{ color: 'rgba(255,255,255,0.6)', marginBottom: '1rem' }}>
                   {teachingComplete
-                    ? "Let\u2019s see if you mastered the concept."
-                    : "Complete the micro-lesson before practice."}
+                    ? "來驗證你是否已掌握這個概念。"
+                    : "請先完成微課程再進行練習。"}
                 </p>
                 
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                  <h3 style={{ fontSize: '1rem', margin: 0 }}>Topic: {teachingTopic}</h3>
-                  <span style={{ fontSize: '0.8rem', padding: '0.25rem 0.5rem', borderRadius: '1rem', background: 'rgba(255,255,255,0.1)' }}>Difficulty: {currentQuestion.difficulty}</span>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+                  <h3 style={{ fontSize: '1rem', margin: 0 }}>主題：{teachingTopic}</h3>
+                  <span style={{ fontSize: '0.8rem', padding: '0.25rem 0.5rem', borderRadius: '1rem', background: 'rgba(255,255,255,0.1)' }}>
+                    難度：{DIFFICULTY_LABEL[currentQuestion.difficulty] ?? currentQuestion.difficulty}
+                  </span>
                 </div>
                 
                 <div style={{ background: 'var(--surface)', padding: '2rem', borderRadius: '0.75rem', fontSize: '1.25rem', textAlign: 'center', border: '1px solid var(--glass-border)' }}>
@@ -199,22 +198,20 @@ export default function StudentPortal() {
 
           </div>
 
-          {/* Mastery Map Visualization */}
           {(mode === 'adaptive' || mode === 'teaching') && <MasteryMap />}
 
         </div>
 
-        {/* Sidebar */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
           <FocusMonitor onFocusChange={setIsFocused} />
           
           <div className="glass-panel">
-            <h3 style={{ marginBottom: '1rem' }}>Today&apos;s Goal</h3>
+            <h3 style={{ marginBottom: '1rem' }}>今日目標</h3>
             <div style={{ background: 'var(--surface)', borderRadius: '999px', height: '8px', overflow: 'hidden' }}>
               <div style={{ width: '65%', height: '100%', background: 'linear-gradient(90deg, var(--primary), var(--accent))' }}></div>
             </div>
             <p style={{ marginTop: '0.5rem', fontSize: '0.875rem', textAlign: 'right', color: 'rgba(255,255,255,0.6)' }}>
-              Est. time remaining: {isFocused ? '45 mins' : 'Paused...'}
+              預估剩餘：{isFocused ? '45 分鐘' : '已暫停…'}
             </p>
           </div>
         </div>

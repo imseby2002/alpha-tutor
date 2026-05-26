@@ -12,24 +12,21 @@ export default function FocusMonitor({ onFocusChange }: FocusMonitorProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [stream, setStream] = useState<MediaStream | null>(null);
   
-  // Request webcam access for true Edge CV evaluation
   const toggleWebcam = async () => {
     if (isWebcamActive) {
-      // Stop webcam
       if (stream) {
         stream.getTracks().forEach(track => track.stop());
       }
       setStream(null);
       setIsWebcamActive(false);
     } else {
-      // Start webcam
       try {
         const mediaStream = await navigator.mediaDevices.getUserMedia({ video: true });
         setStream(mediaStream);
         setIsWebcamActive(true);
       } catch (err) {
         console.error("Error accessing webcam", err);
-        alert("Failed to access webcam. Please check permissions.");
+        alert("無法存取攝影機，請檢查瀏覽器權限設定。");
       }
     }
   };
@@ -40,21 +37,16 @@ export default function FocusMonitor({ onFocusChange }: FocusMonitorProps) {
     }
   }, [stream]);
 
-  // Provide a way to manually test the focus/distracted state logic
   const toggleMockFocus = () => {
     const newState = !mockFocusState;
     setMockFocusState(newState);
     onFocusChange(newState);
-    
-    // In a real implementation, the Layer 1 CV model (e.g. MediaPipe) 
-    // running against `videoRef` frames would call `onFocusChange` automatically.
-    // If state is false for >30s, it fires an event to Layer 2/3 API.
   };
 
   return (
     <div className="glass-panel" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h3 style={{ margin: 0, fontSize: '1rem' }}>Edge CV Monitor</h3>
+        <h3 style={{ margin: 0, fontSize: '1rem' }}>邊緣視覺監測</h3>
         <span style={{ 
           fontSize: '0.75rem', 
           background: isWebcamActive ? 'rgba(16, 185, 129, 0.2)' : 'rgba(255, 255, 255, 0.1)',
@@ -62,7 +54,7 @@ export default function FocusMonitor({ onFocusChange }: FocusMonitorProps) {
           padding: '0.25rem 0.5rem',
           borderRadius: '1rem'
         }}>
-          {isWebcamActive ? 'Layer 1 Active' : 'Inactive'}
+          {isWebcamActive ? 'Layer 1 運作中' : '未啟動'}
         </span>
       </div>
       
@@ -103,14 +95,14 @@ export default function FocusMonitor({ onFocusChange }: FocusMonitorProps) {
               borderRadius: '1rem',
               fontSize: '0.75rem'
             }}>
-              Tracking Gaze & Presence...
+              追蹤視線與在座狀態…
             </div>
           </>
         ) : (
           <>
             <div style={{ fontSize: '2rem', opacity: 0.5 }}>📷</div>
             <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)' }}>
-              Webcam off
+              攝影機已關閉
             </p>
           </>
         )}
@@ -118,7 +110,7 @@ export default function FocusMonitor({ onFocusChange }: FocusMonitorProps) {
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
         <button onClick={toggleWebcam} className="btn-primary" style={{ fontSize: '0.875rem', padding: '0.5rem' }}>
-          {isWebcamActive ? 'Stop Webcam' : 'Start Edge CV Feed'}
+          {isWebcamActive ? '關閉攝影機' : '啟動邊緣視覺'}
         </button>
         
         {isWebcamActive && (
@@ -132,13 +124,13 @@ export default function FocusMonitor({ onFocusChange }: FocusMonitorProps) {
               color: mockFocusState ? 'var(--danger)' : 'var(--accent)'
             }}
           >
-            Simulate: {mockFocusState ? 'Look Away / Distracted' : 'Look at Screen'}
+            模擬：{mockFocusState ? '看向別處／分心' : '注視螢幕'}
           </button>
         )}
       </div>
 
       <p style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.4)', textAlign: 'center', marginTop: '0.5rem' }}>
-        * Privacy First: Face detection runs natively in your browser. Video is NEVER sent to the cloud.
+        * 隱私優先：人臉偵測在瀏覽器本機執行，影片絕不會上傳至雲端。
       </p>
     </div>
   );

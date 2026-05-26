@@ -1,0 +1,26 @@
+---
+description: Automatically commit and push to GitHub after completing code changes for alpha-tutor
+alwaysApply: true
+---
+
+# Git auto-push (alpha-tutor)
+
+When you finish implementing or fixing code in this repository:
+
+1. **Do not ask** the user for permission to push — push proactively.
+2. Run `git status` and `git diff` to review changes.
+3. Stage all relevant files (never commit `.env.local` or secrets).
+4. Commit with a clear message describing the **why** (1–2 sentences).
+5. Push to `origin main` (or the current tracking branch): `git push origin main`
+6. Briefly tell the user the commit message and that push succeeded.
+
+## Safety
+
+- Never use `--force` on `main` unless the user explicitly requests it.
+- Never skip hooks (`--no-verify`) unless the user explicitly requests it.
+- Never commit files that likely contain secrets.
+- If push fails (auth, conflicts), fix or report the error — do not silently skip.
+
+## Remote
+
+Default remote: `https://github.com/imseby2002/alpha-tutor.git` on branch `main`.

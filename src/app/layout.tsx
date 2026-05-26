@@ -6,8 +6,8 @@ import Link from "next/link";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Alpha Tutor MVP",
-  description: "AI Supplementary Learning App",
+  title: "Alpha Tutor｜AI 補教學習",
+  description: "AI 輔助補教學習平台",
 };
 
 export default function RootLayout({
@@ -16,7 +16,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="zh-Hant">
       <body className={inter.className}>
         <nav style={{ 
           background: 'rgba(0,0,0,0.5)', 
@@ -26,14 +26,15 @@ export default function RootLayout({
           display: 'flex',
           gap: '2rem',
           justifyContent: 'center',
+          flexWrap: 'wrap',
           position: 'sticky',
           top: 0,
           zIndex: 50
         }}>
-          <Link href="/" style={{ color: 'var(--foreground)', textDecoration: 'none', fontWeight: 500 }} className="hover-scale">Student Portal</Link>
-          <Link href="/guide" style={{ color: 'var(--foreground)', textDecoration: 'none', fontWeight: 500 }} className="hover-scale">Guide Dashboard</Link>
-          <Link href="/parent" style={{ color: 'var(--foreground)', textDecoration: 'none', fontWeight: 500 }} className="hover-scale">Parent Report</Link>
-          <Link href="/admin" style={{ color: 'var(--warning)', textDecoration: 'none', fontWeight: 500 }} className="hover-scale">Platform Admin (CMS)</Link>
+          <Link href="/" style={{ color: 'var(--foreground)', textDecoration: 'none', fontWeight: 500 }} className="hover-scale">學生學習</Link>
+          <Link href="/guide" style={{ color: 'var(--foreground)', textDecoration: 'none', fontWeight: 500 }} className="hover-scale">導師儀表板</Link>
+          <Link href="/parent" style={{ color: 'var(--foreground)', textDecoration: 'none', fontWeight: 500 }} className="hover-scale">家長報告</Link>
+          <Link href="/admin" style={{ color: 'var(--warning)', textDecoration: 'none', fontWeight: 500 }} className="hover-scale">平台管理 (CMS)</Link>
         </nav>
         <main>
           {children}

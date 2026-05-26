@@ -2,13 +2,12 @@
 
 import { useState } from 'react';
 
-// A mock data structure for the Mastery Map
 const initialNodes = [
-  { id: 'math-1', label: 'Basic Addition', status: 'mastered', x: 50, y: 50 },
-  { id: 'math-2', label: 'Fractions', status: 'mastered', x: 150, y: 100 },
-  { id: 'math-3', label: 'Algebra Basics', status: 'in-progress', x: 250, y: 50 },
-  { id: 'math-4', label: 'Quadratic Equations', status: 'locked', x: 350, y: 100 },
-  { id: 'math-5', label: 'Calculus Intro', status: 'locked', x: 450, y: 50 },
+  { id: 'math-1', label: '基礎加法', status: 'mastered', x: 50, y: 50 },
+  { id: 'math-2', label: '分數', status: 'mastered', x: 150, y: 100 },
+  { id: 'math-3', label: '代數基礎', status: 'in-progress', x: 250, y: 50 },
+  { id: 'math-4', label: '二次方程式', status: 'locked', x: 350, y: 100 },
+  { id: 'math-5', label: '微積分入門', status: 'locked', x: 450, y: 50 },
 ];
 
 export default function MasteryMap() {
@@ -17,10 +16,10 @@ export default function MasteryMap() {
   return (
     <div className="glass-panel" style={{ padding: '2rem', marginTop: '2rem' }}>
       <h2 style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-        <span>🗺️</span> Your Mastery Map
+        <span>🗺️</span> 你的精通地圖
       </h2>
       <p style={{ color: 'rgba(255,255,255,0.7)', marginBottom: '2rem' }}>
-        Unlock new knowledge nodes by achieving 90%+ accuracy on the current topic.
+        在目前主題達到 90% 以上正確率，即可解鎖下一個知識節點。
       </p>
 
       <div style={{ 
@@ -31,7 +30,6 @@ export default function MasteryMap() {
         overflow: 'hidden',
         border: '1px solid var(--glass-border)'
       }}>
-        {/* Draw connection lines (mocked) */}
         <svg style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}>
           <path d="M 50 50 Q 100 100 150 100 T 250 50 T 350 100 T 450 50" 
                 fill="transparent" 
@@ -44,7 +42,6 @@ export default function MasteryMap() {
                 strokeWidth="4" />
         </svg>
 
-        {/* Render nodes */}
         {nodes.map(node => (
           <div key={node.id} className="hover-scale" style={{
             position: 'absolute',
