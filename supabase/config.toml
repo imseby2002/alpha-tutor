@@ -1,0 +1,16 @@
+# Supabase local dev — run: supabase link && supabase start
+# Docs: https://supabase.com/docs/guides/cli
+
+project_id = "alpha-tutor"
+
+[api]
+enabled = true
+port = 54321
+
+[db]
+port = 54322
+major_version = 15
+
+[studio]
+enabled = true
+port = 54323

@@ -33,6 +33,7 @@ export default function RootLayout({
           <Link href="/" style={{ color: 'var(--foreground)', textDecoration: 'none', fontWeight: 500 }} className="hover-scale">Student Portal</Link>
           <Link href="/guide" style={{ color: 'var(--foreground)', textDecoration: 'none', fontWeight: 500 }} className="hover-scale">Guide Dashboard</Link>
           <Link href="/parent" style={{ color: 'var(--foreground)', textDecoration: 'none', fontWeight: 500 }} className="hover-scale">Parent Report</Link>
+          <Link href="/admin" style={{ color: 'var(--warning)', textDecoration: 'none', fontWeight: 500 }} className="hover-scale">Platform Admin (CMS)</Link>
         </nav>
         <main>
           {children}
