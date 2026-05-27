@@ -38,7 +38,14 @@ export default function SignupPage() {
     });
 
     if (signUpError) {
-      setError(signUpError.message);
+      const msg = signUpError.message;
+      if (msg.toLowerCase().includes("database error")) {
+        setError(
+          "資料庫尚未完成註冊設定。請到 Supabase → SQL Editor 執行專案中的 supabase/FIX_SIGNUP.sql，完成後再試一次。"
+        );
+      } else {
+        setError(msg);
+      }
       setLoading(false);
       return;
     }
