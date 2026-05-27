@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import Link from "next/link";
+import { AuthNav } from "./components/AuthNav";
+import { RoleNavLinks } from "./components/RoleNavLinks";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -24,17 +25,18 @@ export default function RootLayout({
           borderBottom: '1px solid var(--glass-border)',
           padding: '1rem 2rem',
           display: 'flex',
-          gap: '2rem',
-          justifyContent: 'center',
+          gap: '1.5rem',
+          justifyContent: 'space-between',
+          alignItems: 'center',
           flexWrap: 'wrap',
           position: 'sticky',
           top: 0,
           zIndex: 50
         }}>
-          <Link href="/" style={{ color: 'var(--foreground)', textDecoration: 'none', fontWeight: 500 }} className="hover-scale">學生學習</Link>
-          <Link href="/guide" style={{ color: 'var(--foreground)', textDecoration: 'none', fontWeight: 500 }} className="hover-scale">導師儀表板</Link>
-          <Link href="/parent" style={{ color: 'var(--foreground)', textDecoration: 'none', fontWeight: 500 }} className="hover-scale">家長報告</Link>
-          <Link href="/admin" style={{ color: 'var(--warning)', textDecoration: 'none', fontWeight: 500 }} className="hover-scale">平台管理 (CMS)</Link>
+          <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
+            <RoleNavLinks />
+          </div>
+          <AuthNav />
         </nav>
         <main>
           {children}

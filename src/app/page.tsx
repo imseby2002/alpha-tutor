@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react';
 import FocusMonitor from './components/FocusMonitor';
 import MasteryMap from './components/MasteryMap';
+import { StudentLinkCode } from './components/StudentLinkCode';
 import {
   ALL_GRADES,
   ALL_SUBJECTS,
@@ -157,6 +158,7 @@ export default function StudentPortal() {
               ))}
             </select>
           </div>
+          <StudentLinkCode />
           <div className="glass-panel" style={{ padding: '0.5rem 1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', borderRadius: '2rem' }}>
             <span style={{ 
               display: 'inline-block', 
