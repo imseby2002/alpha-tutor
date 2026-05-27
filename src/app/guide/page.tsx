@@ -1,7 +1,15 @@
 "use client";
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import Link from 'next/link';
+import {
+  ALL_GRADES,
+  ALL_SUBJECTS,
+  GRADE_LABEL,
+  SUBJECT_LABEL,
+  type SchoolGrade,
+  type Subject,
+} from '@/lib/education';
 
 type StudentStatus = 'focused' | 'distracted' | 'struggling';
 
@@ -11,15 +19,33 @@ const STATUS_LABEL: Record<StudentStatus, string> = {
   struggling: '需要協助',
 };
 
+type GuideStudent = {
+  id: number;
+  name: string;
+  status: StudentStatus;
+  accuracy: string;
+  level: number;
+  lastEvent: string;
+  grade: SchoolGrade;
+  subject: Subject;
+};
+
 export default function GuidePortal() {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'upload'>('dashboard');
+  const [grade, setGrade] = useState<SchoolGrade>('G9');
+  const [subject, setSubject] = useState<Subject>('math');
 
-  const [students] = useState([
-    { id: 1, name: '陳小愛', status: 'focused' as StudentStatus, accuracy: '92%', level: 5, lastEvent: '完成數學單元' },
-    { id: 2, name: '林柏宇', status: 'distracted' as StudentStatus, accuracy: '78%', level: 3, lastEvent: '離座 2 分鐘' },
-    { id: 3, name: '王查理', status: 'focused' as StudentStatus, accuracy: '88%', level: 4, lastEvent: '開始英文單字練習' },
-    { id: 4, name: '李大衛', status: 'struggling' as StudentStatus, accuracy: '45%', level: 2, lastEvent: '分數題連錯 3 次' },
+  const [students] = useState<GuideStudent[]>([
+    { id: 1, name: '陳小愛', status: 'focused', accuracy: '92%', level: 5, lastEvent: '完成數學單元', grade: 'G9', subject: 'math' },
+    { id: 2, name: '林柏宇', status: 'distracted', accuracy: '78%', level: 3, lastEvent: '離座 2 分鐘', grade: 'G9', subject: 'math' },
+    { id: 3, name: '王查理', status: 'focused', accuracy: '88%', level: 4, lastEvent: '開始英文單字練習', grade: 'G8', subject: 'english' },
+    { id: 4, name: '李大衛', status: 'struggling', accuracy: '45%', level: 2, lastEvent: '分數題連錯 3 次', grade: 'G7', subject: 'math' },
   ]);
+
+  const filteredStudents = useMemo(
+    () => students.filter((s) => s.grade === grade && s.subject === subject),
+    [students, grade, subject]
+  );
 
   const [uploadStatus, setUploadStatus] = useState<'idle' | 'uploading' | 'processing' | 'success'>('idle');
   const [progress, setProgress] = useState(0);
@@ -50,12 +76,17 @@ export default function GuidePortal() {
       <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
           <h1 className="text-gradient" style={{ fontSize: '2.5rem' }}>導師儀表板</h1>
-          <p style={{ color: 'rgba(255,255,255,0.6)', marginTop: '0.5rem' }}>補習班管理與學生輔導視圖</p>
+          <p style={{ color: 'rgba(255,255,255,0.6)', marginTop: '0.5rem' }}>
+            補習班管理與學生輔導視圖
+          </p>
+          <p style={{ color: 'rgba(255,255,255,0.7)', marginTop: '0.25rem', fontSize: '0.9rem' }}>
+            目前班級：{GRADE_LABEL[grade]} • {SUBJECT_LABEL[subject]}
+          </p>
         </div>
         <Link href="/" className="btn-secondary">返回學生端</Link>
       </header>
 
-      <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem', borderBottom: '1px solid var(--glass-border)', paddingBottom: '1rem', flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem', borderBottom: '1px solid var(--glass-border)', paddingBottom: '1rem', flexWrap: 'wrap', alignItems: 'center' }}>
         <button 
           onClick={() => setActiveTab('dashboard')} 
           style={{ 
@@ -74,6 +105,51 @@ export default function GuidePortal() {
         >
           上傳自訂教材
         </button>
+        <div style={{ marginLeft: 'auto', display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'center' }}>
+          <span style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.7)' }}>篩選條件：</span>
+          <div className="glass-panel" style={{ padding: '0.4rem 0.75rem', borderRadius: '999px', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+            <label style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.7)' }}>年級</label>
+            <select
+              value={grade}
+              onChange={(e) => setGrade(e.target.value as SchoolGrade)}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                color: 'white',
+                fontSize: '0.85rem',
+                outline: 'none',
+                cursor: 'pointer',
+              }}
+            >
+              {ALL_GRADES.map((g) => (
+                <option key={g} value={g} style={{ color: 'black' }}>
+                  {GRADE_LABEL[g]}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="glass-panel" style={{ padding: '0.4rem 0.75rem', borderRadius: '999px', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+            <label style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.7)' }}>科目</label>
+            <select
+              value={subject}
+              onChange={(e) => setSubject(e.target.value as Subject)}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                color: 'white',
+                fontSize: '0.85rem',
+                outline: 'none',
+                cursor: 'pointer',
+              }}
+            >
+              {ALL_SUBJECTS.map((s) => (
+                <option key={s} value={s} style={{ color: 'black' }}>
+                  {SUBJECT_LABEL[s]}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
       </div>
 
       {activeTab === 'dashboard' ? (
@@ -81,7 +157,7 @@ export default function GuidePortal() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1.5rem', marginBottom: '3rem' }}>
             <div className="glass-panel hover-scale">
               <h3 style={{ color: 'rgba(255,255,255,0.6)' }}>在線學生</h3>
-              <p style={{ fontSize: '2.5rem', fontWeight: 700, margin: '0.5rem 0' }}>24</p>
+              <p style={{ fontSize: '2.5rem', fontWeight: 700, margin: '0.5rem 0' }}>{filteredStudents.length}</p>
             </div>
             <div className="glass-panel hover-scale">
               <h3 style={{ color: 'rgba(255,255,255,0.6)' }}>平均專注度</h3>
@@ -89,7 +165,9 @@ export default function GuidePortal() {
             </div>
             <div className="glass-panel hover-scale" style={{ border: '1px solid var(--danger)' }}>
               <h3 style={{ color: 'var(--danger)' }}>需介入輔導</h3>
-              <p style={{ fontSize: '2.5rem', fontWeight: 700, margin: '0.5rem 0' }}>2</p>
+              <p style={{ fontSize: '2.5rem', fontWeight: 700, margin: '0.5rem 0' }}>
+                {filteredStudents.filter((s) => s.status === 'struggling').length}
+              </p>
             </div>
           </div>
 
@@ -105,13 +183,15 @@ export default function GuidePortal() {
                 </tr>
               </thead>
               <tbody>
-                {students.map((student) => {
+                {filteredStudents.map((student) => {
                   const style = statusStyle(student.status);
                   return (
                   <tr key={student.id} style={{ borderBottom: '1px solid var(--glass-border)' }}>
                     <td style={{ padding: '1rem 1.5rem' }}>
                       <div style={{ fontWeight: 600 }}>{student.name}</div>
-                      <div style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.5)' }}>等級 {student.level}</div>
+                      <div style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.5)' }}>
+                        等級 {student.level}｜{GRADE_LABEL[student.grade]}｜{SUBJECT_LABEL[student.subject]}
+                      </div>
                     </td>
                     <td style={{ padding: '1rem 1.5rem' }}>
                       <span style={{ 

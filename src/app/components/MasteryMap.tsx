@@ -1,22 +1,64 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
+import { type SchoolGrade, type Subject, SUBJECT_LABEL } from '@/lib/education';
 
-const initialNodes = [
-  { id: 'math-1', label: '基礎加法', status: 'mastered', x: 50, y: 50 },
-  { id: 'math-2', label: '分數', status: 'mastered', x: 150, y: 100 },
-  { id: 'math-3', label: '代數基礎', status: 'in-progress', x: 250, y: 50 },
-  { id: 'math-4', label: '二次方程式', status: 'locked', x: 350, y: 100 },
-  { id: 'math-5', label: '微積分入門', status: 'locked', x: 450, y: 50 },
-];
+type NodeStatus = 'mastered' | 'in-progress' | 'locked';
 
-export default function MasteryMap() {
-  const [nodes] = useState(initialNodes);
+type MasteryNode = {
+  id: string;
+  label: string;
+  status: NodeStatus;
+  x: number;
+  y: number;
+};
+
+const SUBJECT_NODES: Record<Subject, MasteryNode[]> = {
+  math: [
+    { id: 'math-1', label: '基礎加法', status: 'mastered', x: 50, y: 50 },
+    { id: 'math-2', label: '分數', status: 'mastered', x: 150, y: 100 },
+    { id: 'math-3', label: '代數基礎', status: 'in-progress', x: 250, y: 50 },
+    { id: 'math-4', label: '二次方程式', status: 'locked', x: 350, y: 100 },
+    { id: 'math-5', label: '微積分入門', status: 'locked', x: 450, y: 50 },
+  ],
+  english: [
+    { id: 'eng-1', label: '基礎字彙', status: 'mastered', x: 60, y: 60 },
+    { id: 'eng-2', label: '文法時態', status: 'in-progress', x: 180, y: 110 },
+    { id: 'eng-3', label: '閱讀理解', status: 'locked', x: 300, y: 60 },
+  ],
+  chinese: [
+    { id: 'chi-1', label: '注音／拼音', status: 'mastered', x: 80, y: 70 },
+    { id: 'chi-2', label: '成語運用', status: 'in-progress', x: 200, y: 120 },
+    { id: 'chi-3', label: '閱讀測驗', status: 'locked', x: 320, y: 70 },
+  ],
+  science: [
+    { id: 'sci-1', label: '力與運動', status: 'mastered', x: 70, y: 60 },
+    { id: 'sci-2', label: '電與磁', status: 'in-progress', x: 200, y: 110 },
+    { id: 'sci-3', label: '地球科學', status: 'locked', x: 330, y: 60 },
+  ],
+  social: [
+    { id: 'soc-1', label: '地理概念', status: 'mastered', x: 70, y: 60 },
+    { id: 'soc-2', label: '歷史事件', status: 'in-progress', x: 200, y: 110 },
+    { id: 'soc-3', label: '公民素養', status: 'locked', x: 330, y: 60 },
+  ],
+};
+
+type Props = {
+  grade: SchoolGrade;
+  subject: Subject;
+};
+
+export default function MasteryMap({ grade, subject }: Props) {
+  const [overrideNodes] = useState<Record<string, MasteryNode[]>>({});
+  const nodes = useMemo(
+    () => overrideNodes[`${grade}-${subject}`] ?? SUBJECT_NODES[subject],
+    [grade, subject, overrideNodes]
+  );
 
   return (
     <div className="glass-panel" style={{ padding: '2rem', marginTop: '2rem' }}>
       <h2 style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-        <span>🗺️</span> 你的精通地圖
+        <span>🗺️</span> 你的精通地圖（{SUBJECT_LABEL[subject]}）
       </h2>
       <p style={{ color: 'rgba(255,255,255,0.7)', marginBottom: '2rem' }}>
         在目前主題達到 90% 以上正確率，即可解鎖下一個知識節點。

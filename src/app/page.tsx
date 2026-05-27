@@ -3,6 +3,14 @@
 import { useState } from 'react';
 import FocusMonitor from './components/FocusMonitor';
 import MasteryMap from './components/MasteryMap';
+import {
+  ALL_GRADES,
+  ALL_SUBJECTS,
+  GRADE_LABEL,
+  SUBJECT_LABEL,
+  type SchoolGrade,
+  type Subject,
+} from '@/lib/education';
 
 const DIFFICULTY_LABEL: Record<string, string> = {
   Medium: '中等',
@@ -13,6 +21,8 @@ export default function StudentPortal() {
   const [level, setLevel] = useState(1);
   const [xp, setXp] = useState(350);
   const [isFocused, setIsFocused] = useState(true);
+  const [grade, setGrade] = useState<SchoolGrade>('G9');
+  const [subject, setSubject] = useState<Subject>('math');
   
   const [mode, setMode] = useState<'diagnostic' | 'teaching' | 'adaptive'>('diagnostic');
   const [diagnosticStep, setDiagnosticStep] = useState(0);
@@ -72,10 +82,57 @@ export default function StudentPortal() {
       <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
           <h1 className="text-gradient">Alpha Tutor</h1>
-          <p style={{ color: 'var(--warning)', marginTop: '0.5rem' }}>等級 {level} • {xp} XP</p>
+          <p style={{ color: 'var(--warning)', marginTop: '0.5rem' }}>
+            等級 {level} • {xp} XP
+          </p>
+          <p style={{ color: 'rgba(255,255,255,0.7)', marginTop: '0.25rem', fontSize: '0.9rem' }}>
+            目前：{GRADE_LABEL[grade]} • {SUBJECT_LABEL[subject]}
+          </p>
         </div>
         
-        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
+          <div className="glass-panel" style={{ padding: '0.5rem 1rem', borderRadius: '999px', display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+            <label style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.7)' }}>年級</label>
+            <select
+              value={grade}
+              onChange={(e) => setGrade(e.target.value as SchoolGrade)}
+              style={{ 
+                background: 'transparent',
+                border: 'none',
+                color: 'white',
+                fontSize: '0.85rem',
+                outline: 'none',
+                cursor: 'pointer',
+              }}
+            >
+              {ALL_GRADES.map((g) => (
+                <option key={g} value={g} style={{ color: 'black' }}>
+                  {GRADE_LABEL[g]}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="glass-panel" style={{ padding: '0.5rem 1rem', borderRadius: '999px', display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+            <label style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.7)' }}>科目</label>
+            <select
+              value={subject}
+              onChange={(e) => setSubject(e.target.value as Subject)}
+              style={{ 
+                background: 'transparent',
+                border: 'none',
+                color: 'white',
+                fontSize: '0.85rem',
+                outline: 'none',
+                cursor: 'pointer',
+              }}
+            >
+              {ALL_SUBJECTS.map((s) => (
+                <option key={s} value={s} style={{ color: 'black' }}>
+                  {SUBJECT_LABEL[s]}
+                </option>
+              ))}
+            </select>
+          </div>
           <div className="glass-panel" style={{ padding: '0.5rem 1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', borderRadius: '2rem' }}>
             <span style={{ 
               display: 'inline-block', 
@@ -198,7 +255,9 @@ export default function StudentPortal() {
 
           </div>
 
-          {(mode === 'adaptive' || mode === 'teaching') && <MasteryMap />}
+          {(mode === 'adaptive' || mode === 'teaching') && (
+            <MasteryMap grade={grade} subject={subject} />
+          )}
 
         </div>
 
