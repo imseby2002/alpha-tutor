@@ -6,10 +6,21 @@ export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
   const next = searchParams.get("next") ?? "/";
+  const type = searchParams.get("type");
 
   if (code) {
     const supabase = await createClient();
     const { error } = await supabase.auth.exchangeCodeForSession(code);
+
+    // Handle password recovery flow
+    if (type === "recovery") {
+      if (error) {
+        return NextResponse.redirect(`${origin}/reset-password?error=invalid_link`);
+      }
+      return NextResponse.redirect(`${origin}/reset-password`);
+    }
+
+    // Handle normal auth flow
     if (!error) {
       const {
         data: { user },

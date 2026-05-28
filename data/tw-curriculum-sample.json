@@ -1,0 +1,53 @@
+[
+  {
+    "country": "TW",
+    "grade": "G1",
+    "subject": "chinese",
+    "type": "textbook",
+    "title": "國小一年級國語課本",
+    "publisher": "教育部國教署",
+    "year": 2024,
+    "sourceUrl": "https://example.com/tw/g1/chinese/textbook",
+    "license": "教育部授權",
+    "fileSizeBytes": 5242880,
+    "description": "台灣小學一年級國語課本，包含注音、閱讀與拼音練習。",
+    "metadata": {
+      "bookSeries": "部定課本",
+      "curriculum": "12-year basic education"
+    }
+  },
+  {
+    "country": "TW",
+    "grade": "G3",
+    "subject": "math",
+    "type": "questionBank",
+    "title": "國小三年級數學題庫",
+    "publisher": "地方教育局",
+    "year": 2023,
+    "sourceUrl": "https://example.com/tw/g3/math/question-bank",
+    "license": "學校授權",
+    "fileSizeBytes": 3145728,
+    "description": "國小三年級數學複習題庫，含計算與應用題。",
+    "metadata": {
+      "scope": "國小數學",
+      "gradeLevel": "G3"
+    }
+  },
+  {
+    "country": "TW",
+    "grade": "G9",
+    "subject": "physics",
+    "type": "exam",
+    "title": "國中九年級物理會考模擬試題",
+    "publisher": "補教機構",
+    "year": 2024,
+    "sourceUrl": "https://example.com/tw/g9/physics/exam",
+    "license": "教學使用",
+    "fileSizeBytes": 1048576,
+    "description": "國中會考級別的物理模擬試題與詳解。",
+    "metadata": {
+      "examType": "會考",
+      "topicTags": ["力學", "聲光"]
+    }
+  }
+]

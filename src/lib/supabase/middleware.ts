@@ -2,7 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { canAccessPath, ROLE_HOME, type UserRole } from "@/lib/auth";
 
-const PUBLIC_PATHS = ["/login", "/signup", "/forgot", "/forgt", "/auth/callback", "/api/health"];
+const PUBLIC_PATHS = ["/login", "/signup", "/forgot", "/forgt", "/reset-password", "/auth/callback", "/api/health"];
 
 function isPublicPath(pathname: string) {
   return PUBLIC_PATHS.some(

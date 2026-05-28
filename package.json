@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "import-curriculum": "node scripts/import-curriculum.js"
   },
   "dependencies": {
     "@supabase/ssr": "^0.10.3",
