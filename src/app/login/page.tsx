@@ -82,12 +82,7 @@ function LoginForm() {
               placeholder="••••••••"
             />
           </label>
- 
-          <div style={{ textAlign: "right", marginTop: "-0.25rem" }}>
-            <Link href="/forgot" style={{ color: "var(--primary)", fontSize: "0.9rem" }}>
-              忘記密碼？
-            </Link>
-          </div>
+
           {error && (
             <p style={{ color: "var(--danger)", fontSize: "0.9rem", margin: 0 }}>{error}</p>
           )}
@@ -96,6 +91,12 @@ function LoginForm() {
             {loading ? "登入中…" : "登入"}
           </button>
         </form>
+
+        <div style={{ textAlign: "right", marginTop: "0.75rem" }}>
+          <a href="/forgot" style={{ color: "var(--primary)", fontSize: "0.95rem", textDecoration: "underline" }}>
+            忘記密碼？
+          </a>
+        </div>
 
         <p style={{ marginTop: "1.5rem", fontSize: "0.9rem", color: "rgba(255,255,255,0.6)" }}>
           還沒有帳號？{" "}
