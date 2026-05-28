@@ -1,10 +1,7 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
 import "./globals.css";
 import { AuthNav } from "./components/AuthNav";
 import { RoleNavLinks } from "./components/RoleNavLinks";
-
-const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "Alpha Tutor｜AI 補教學習",
@@ -18,7 +15,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="zh-Hant">
-      <body className={inter.className}>
+      <body>
         <nav style={{ 
           background: 'rgba(0,0,0,0.5)', 
           backdropFilter: 'blur(10px)',
