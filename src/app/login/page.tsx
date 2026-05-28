@@ -52,8 +52,11 @@ function LoginForm() {
         <h1 className="text-gradient" style={{ fontSize: "1.75rem", marginBottom: "0.5rem" }}>
           登入 Alpha Tutor
         </h1>
-        <p style={{ color: "rgba(255,255,255,0.6)", marginBottom: "1.5rem" }}>
-          使用你的帳號進入對應的學習／導師／家長頁面
+        <p style={{ color: "rgba(255,255,255,0.6)", marginBottom: "0.75rem" }}>
+          使用你的帳號登入即可。
+        </p>
+        <p style={{ color: "rgba(255,255,255,0.55)", marginBottom: "1.5rem", fontSize: "0.95rem" }}>
+          系統會自動判斷你是學生、導師或家長，並導向對應頁面，不需要額外勾選身份。
         </p>
 
         <form onSubmit={handleLogin} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
@@ -79,7 +82,12 @@ function LoginForm() {
               placeholder="••••••••"
             />
           </label>
-
+ 
+          <div style={{ textAlign: "right", marginTop: "-0.25rem" }}>
+            <Link href="/forgot" style={{ color: "var(--primary)", fontSize: "0.9rem" }}>
+              忘記密碼？
+            </Link>
+          </div>
           {error && (
             <p style={{ color: "var(--danger)", fontSize: "0.9rem", margin: 0 }}>{error}</p>
           )}
