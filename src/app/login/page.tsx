@@ -93,9 +93,9 @@ function LoginForm() {
         </form>
 
         <div style={{ textAlign: "right", marginTop: "0.75rem" }}>
-          <a href="/forgot" style={{ color: "var(--primary)", fontSize: "0.95rem", textDecoration: "underline" }}>
+          <Link href="/forgot" style={{ color: "var(--primary)", fontSize: "0.95rem", textDecoration: "underline", display: "inline-block" }}>
             忘記密碼？
-          </a>
+          </Link>
         </div>
 
         <p style={{ marginTop: "1.5rem", fontSize: "0.9rem", color: "rgba(255,255,255,0.6)" }}>
