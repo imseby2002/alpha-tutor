@@ -19,7 +19,8 @@ export default function ForgotPage() {
     const supabase = createClient();
     try {
       const { data, error: respErr } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/auth/callback`,
+        // Direct user to the client-side reset page so the fragment (#access_token=...) can be parsed
+        redirectTo: `${window.location.origin}/reset-password`,
       });
       if (respErr) {
         setError(respErr.message || "寄送失敗，請稍後再試。");
