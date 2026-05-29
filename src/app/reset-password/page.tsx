@@ -35,14 +35,29 @@ function ResetPasswordForm() {
         }, {} as Record<string, string>);
     };
 
+    const parseSearch = (search: string) => {
+      if (!search) return {} as Record<string, string>;
+      return search
+        .replace(/^\?/, "")
+        .split("&")
+        .map((pair) => pair.split("="))
+        .reduce((acc, [k, v]) => {
+          acc[decodeURIComponent(k)] = decodeURIComponent(v || "");
+          return acc;
+        }, {} as Record<string, string>);
+    };
+
     const validateSession = async () => {
       const supabase = createClient();
 
-      // If Supabase redirected with a fragment (client-side), it will contain access_token and refresh_token
       const hash = typeof window !== "undefined" ? window.location.hash : "";
-      const params = parseHash(hash);
+      const search = typeof window !== "undefined" ? window.location.search : "";
+      const params = {
+        ...parseSearch(search),
+        ...parseHash(hash),
+      };
+
       if (params.access_token) {
-        // try to set session from fragment tokens
         const { error: setErr } = await supabase.auth.setSession({
           access_token: params.access_token,
           refresh_token: params.refresh_token,
