@@ -12,57 +12,116 @@ function ResetPasswordForm() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [linkHint, setLinkHint] = useState<string | null>(null);
+  const [linkError, setLinkError] = useState<string | null>(null);
+  const [pastedLink, setPastedLink] = useState("");
   const [loading, setLoading] = useState(false);
   const [validating, setValidating] = useState(true);
+
+  const parsePairString = (input: string, separator: string) => {
+    if (!input) return {} as Record<string, string>;
+    return input
+      .replace(new RegExp(`^[${separator}]`), "")
+      .split("&")
+      .map((pair) => {
+        const [key, ...rest] = pair.split("=");
+        return [key, rest.join("=")];
+      })
+      .reduce((acc, [k, v]) => {
+        acc[decodeURIComponent(k)] = decodeURIComponent(v || "");
+        return acc;
+      }, {} as Record<string, string>);
+  };
+
+  const parseLinkInput = (value: string) => {
+    if (!value) return {} as Record<string, string>;
+
+    try {
+      const url = new URL(value);
+      return {
+        ...parsePairString(url.search, "?"),
+        ...parsePairString(url.hash, "#"),
+      };
+    } catch {
+      // If the user pasted only a fragment or query string
+      return {
+        ...parsePairString(value, "?"),
+        ...parsePairString(value, "#"),
+      };
+    }
+  };
+
+  const exchangeRecoveryParams = async (supabase: ReturnType<typeof createClient>, params: Record<string, string>) => {
+    if (params.access_token && params.refresh_token) {
+      return supabase.auth.setSession({
+        access_token: params.access_token,
+        refresh_token: params.refresh_token,
+      } as any);
+    }
+
+    if (params.code && params.type === "recovery") {
+      // Use server-side API to exchange recovery code
+      try {
+        const response = await fetch("/api/auth/exchange-recovery", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ code: params.code }),
+        });
+        const data = await response.json();
+        return { error: data.error || null };
+      } catch (err: any) {
+        return { error: err.message };
+      }
+    }
+
+    return { error: null } as { error: any };
+  };
+
+  const handlePasteLink = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLinkError(null);
+    setError(null);
+    setLinkHint(null);
+
+    const params = parseLinkInput(pastedLink);
+    if (!params.access_token || !params.refresh_token) {
+      if (!(params.code && params.type === "recovery")) {
+        setLinkError("請貼上包含 access_token 與 refresh_token，或 recovery code 的完整重設連結。");
+        return;
+      }
+    }
+
+    const supabase = createClient();
+    const { error: setErr } = await exchangeRecoveryParams(supabase, params);
+
+    if (setErr) {
+      setLinkError("無法從貼上的連結建立會話，請重新申請重設密碼。");
+      return;
+    }
+
+    setLinkHint("已成功解析貼上連結，請繼續輸入新密碼。");
+  };
 
   useEffect(() => {
     const errorParam = searchParams.get("error");
     if (errorParam === "invalid_link") {
       setError("重設連結無效或已過期，請重新申請重設密碼。");
+      setLinkHint("請確認你是從電子郵件中的重設連結開啟，或直接貼上完整重設連結。");
       setValidating(false);
       return;
     }
 
-    const parseHash = (hash: string) => {
-      if (!hash) return {} as Record<string, string>;
-      return hash
-        .replace(/^#/, "")
-        .split("&")
-        .map((pair) => pair.split("="))
-        .reduce((acc, [k, v]) => {
-          acc[decodeURIComponent(k)] = decodeURIComponent(v || "");
-          return acc;
-        }, {} as Record<string, string>);
-    };
-
-    const parseSearch = (search: string) => {
-      if (!search) return {} as Record<string, string>;
-      return search
-        .replace(/^\?/, "")
-        .split("&")
-        .map((pair) => pair.split("="))
-        .reduce((acc, [k, v]) => {
-          acc[decodeURIComponent(k)] = decodeURIComponent(v || "");
-          return acc;
-        }, {} as Record<string, string>);
-    };
-
     const validateSession = async () => {
       const supabase = createClient();
-
       const hash = typeof window !== "undefined" ? window.location.hash : "";
       const search = typeof window !== "undefined" ? window.location.search : "";
       const params = {
-        ...parseSearch(search),
-        ...parseHash(hash),
+        ...parsePairString(search, "?"),
+        ...parsePairString(hash, "#"),
       };
 
-      if (params.access_token) {
-        const { error: setErr } = await supabase.auth.setSession({
-          access_token: params.access_token,
-          refresh_token: params.refresh_token,
-        } as any);
-
+      if (params.access_token || (params.code && params.type === "recovery")) {
+        const { error: setErr } = await exchangeRecoveryParams(supabase, params);
         if (setErr) {
           setError("無法建立會話，請重新申請重設密碼。");
           setValidating(false);
@@ -75,7 +134,10 @@ function ResetPasswordForm() {
       } = await supabase.auth.getUser();
 
       if (!user) {
-        setError("無效的重設連結或連結已過期，請重新申請重設密碼。");
+        setError("未偵測到重設密碼連結內容，請確認你是從電子郵件連結開啟，或直接貼上完整重設連結。");
+        setLinkHint("若你貼上連結，請確保它包含 access_token 與 refresh_token。");
+      } else {
+        setLinkHint("連結已成功解析，請輸入新密碼。");
       }
       setValidating(false);
     };
@@ -87,6 +149,7 @@ function ResetPasswordForm() {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    setLinkError(null);
     setMessage(null);
 
     if (password !== confirmPassword) {
@@ -152,6 +215,34 @@ function ResetPasswordForm() {
             {message}
           </div>
         )}
+
+        {linkError && (
+          <div style={{ background: "rgba(239, 68, 68, 0.1)", border: "1px solid var(--danger)", padding: "0.75rem", borderRadius: "0.5rem", color: "var(--danger)", marginBottom: "1rem", fontSize: "0.9rem" }}>
+            {linkError}
+          </div>
+        )}
+
+        {linkHint && (
+          <div style={{ background: "rgba(56, 189, 248, 0.08)", border: "1px solid rgba(56, 189, 248, 0.4)", padding: "0.75rem", borderRadius: "0.5rem", color: "#a5f3fc", marginBottom: "1rem", fontSize: "0.9rem" }}>
+            {linkHint}
+          </div>
+        )}
+
+        <form onSubmit={handlePasteLink} style={{ display: "flex", flexDirection: "column", gap: "0.75rem", marginBottom: "1.5rem" }}>
+          <label style={{ display: "flex", flexDirection: "column", gap: "0.35rem" }}>
+            <span style={{ fontSize: "0.85rem", color: "rgba(255,255,255,0.7)" }}>若重設連結未自動生效，請貼上完整連結</span>
+            <input
+              type="text"
+              value={pastedLink}
+              onChange={(e) => setPastedLink(e.target.value)}
+              placeholder="https://...#access_token=...&refresh_token=..."
+              style={{ padding: "0.75rem 1rem", borderRadius: "0.5rem", border: "1px solid var(--glass-border)", background: "var(--surface)", color: "white" }}
+            />
+          </label>
+          <button type="submit" className="btn-secondary">
+            解析重設連結
+          </button>
+        </form>
 
         {!error ? (
           <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
