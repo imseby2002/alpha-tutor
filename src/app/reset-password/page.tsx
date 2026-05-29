@@ -68,7 +68,17 @@ function ResetPasswordForm() {
           body: JSON.stringify({ code: params.code }),
         });
         const data = await response.json();
-        return { error: data.error || null };
+        if (data.error) {
+          return { error: data.error };
+        }
+        // Set the session from the returned tokens
+        if (data.session) {
+          return supabase.auth.setSession({
+            access_token: data.session.access_token,
+            refresh_token: data.session.refresh_token,
+          } as any);
+        }
+        return { error: "No session in response" };
       } catch (err: any) {
         return { error: err.message };
       }

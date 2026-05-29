@@ -13,7 +13,7 @@ export async function POST(request: Request) {
     }
 
     const supabase = await createClient();
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
+    const { data, error } = await supabase.auth.exchangeCodeForSession(code);
 
     if (error) {
       return NextResponse.json(
@@ -22,19 +22,21 @@ export async function POST(request: Request) {
       );
     }
 
-    // Verify session was established
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      return NextResponse.json(
-        { error: "Session established but user not found" },
-        { status: 400 }
-      );
+    // Return session tokens so client can set them directly
+    if (data.session) {
+      return NextResponse.json({
+        success: true,
+        session: {
+          access_token: data.session.access_token,
+          refresh_token: data.session.refresh_token,
+        },
+      });
     }
 
-    return NextResponse.json({ success: true, user });
+    return NextResponse.json(
+      { error: "No session returned from code exchange" },
+      { status: 400 }
+    );
   } catch (err: any) {
     return NextResponse.json(
       { error: err?.message ?? "Internal server error" },
