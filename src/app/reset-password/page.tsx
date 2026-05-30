@@ -130,9 +130,16 @@ function ResetPasswordForm() {
         ...parsePairString(hash, "#"),
       };
 
-      if (params.access_token || (params.code && params.type === "recovery")) {
+      console.log("[ResetPassword] URL State:", { hash: hash.substring(0, 50), search: search.substring(0, 50) });
+      console.log("[ResetPassword] Parsed tokens:", { hasAccessToken: !!params.access_token, hasCode: !!params.code, type: params.type });
+
+      const hasAccessToken = !!params.access_token;
+      const hasRecoveryCode = !!(params.code && params.type === "recovery");
+
+      if (hasAccessToken || hasRecoveryCode) {
         const { error: setErr } = await exchangeRecoveryParams(supabase, params);
         if (setErr) {
+          console.error("[ResetPassword] Exchange error:", setErr);
           setError("無法建立會話，請重新申請重設密碼。");
           setValidating(false);
           return;
@@ -144,6 +151,7 @@ function ResetPasswordForm() {
       } = await supabase.auth.getUser();
 
       if (!user) {
+        console.warn("[ResetPassword] No user after validation. Has token:", hasAccessToken || hasRecoveryCode);
         setError("未偵測到重設密碼連結內容，請確認你是從電子郵件連結開啟，或直接貼上完整重設連結。");
         setLinkHint("若你貼上連結，請確保它包含 access_token 與 refresh_token。");
       } else {
