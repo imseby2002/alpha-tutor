@@ -3,7 +3,16 @@ import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
   try {
-    const { code } = await request.json();
+    console.log('[ExchangeRecovery] POST invoked', { url: request.url });
+    const text = await request.text();
+    let body: any = {};
+    try {
+      body = text ? JSON.parse(text) : {};
+    } catch (e) {
+      console.warn('[ExchangeRecovery] failed to parse JSON body, raw:', text);
+    }
+    console.log('[ExchangeRecovery] body:', body);
+    const { code } = body;
 
     if (!code) {
       return NextResponse.json(
@@ -13,7 +22,9 @@ export async function POST(request: Request) {
     }
 
     const supabase = await createClient();
+    console.log('[ExchangeRecovery] exchanging code for session');
     const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+    console.log('[ExchangeRecovery] exchange result', { error: error?.message, hasSession: !!data?.session });
 
     if (error) {
       return NextResponse.json(

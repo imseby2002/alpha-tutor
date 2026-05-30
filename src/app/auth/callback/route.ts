@@ -4,6 +4,14 @@ import { ROLE_HOME, type UserRole } from "@/lib/auth";
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
+  try {
+    console.log('[AuthCallback] GET invoked', { url: request.url });
+    const entries: Record<string, string> = {};
+    searchParams.forEach((v, k) => (entries[k] = v));
+    console.log('[AuthCallback] searchParams:', entries);
+  } catch (e) {
+    console.warn('[AuthCallback] failed to log request info', e);
+  }
   const code = searchParams.get("code");
   const next = searchParams.get("next") ?? "/";
   const type = searchParams.get("type");
