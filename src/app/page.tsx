@@ -33,7 +33,7 @@ export default function StudentPortal() {
   const [grade, setGrade] = useState<SchoolGrade>(defaultGrade);
   const [subject, setSubject] = useState<Subject>(defaultSubject);
   
-  const [mode, setMode] = useState<'diagnostic' | 'teaching' | 'adaptive'>('diagnostic');
+  const [mode, setMode] = useState<'diagnostic' | 'teaching' | 'adaptive'>('teaching');
   const [diagnosticStep, setDiagnosticStep] = useState(0);
 
   const scenario = useMemo(() => getScenario(grade, subject), [grade, subject]);
@@ -47,7 +47,7 @@ export default function StudentPortal() {
 
   const resetFlowFor = (nextGrade: SchoolGrade, nextSubject: Subject) => {
     const nextScenario = getScenario(nextGrade, nextSubject);
-    setMode('diagnostic');
+    setMode('teaching');
     setDiagnosticStep(0);
     setTeachingComplete(false);
     setTeachingTopic(nextScenario.teaching.topic);
@@ -174,6 +174,20 @@ export default function StudentPortal() {
           </div>
         </div>
       </header>
+
+      <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
+        {(['teaching', 'diagnostic', 'adaptive'] as const).map((tab) => (
+          <button
+            key={tab}
+            onClick={() => setMode(tab)}
+            className={tab === mode ? 'btn-primary' : 'btn-secondary'}
+            style={{ minWidth: '140px' }}
+            disabled={tab === 'adaptive' && !teachingComplete}
+          >
+            {tab === 'teaching' ? 'AI 微課程' : tab === 'diagnostic' ? '診斷評量' : '自適應練習'}
+          </button>
+        ))}
+      </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 300px', gap: '2rem' }}>
         
