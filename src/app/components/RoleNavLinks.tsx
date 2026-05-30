@@ -17,9 +17,14 @@ export async function RoleNavLinks() {
   return (
     <>
       {(profile.role === "student" || profile.role === "admin") && (
-        <Link href="/" style={linkStyle} className="hover-scale">
-          學生學習
-        </Link>
+        <>
+          <Link href="/" style={linkStyle} className="hover-scale">
+            學生學習
+          </Link>
+          <Link href="/curriculum" style={linkStyle} className="hover-scale">
+            課程內容
+          </Link>
+        </>
       )}
       {(profile.role === "guide" || profile.role === "admin") && (
         <Link href="/guide" style={linkStyle} className="hover-scale">

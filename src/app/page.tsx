@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from 'react';
+import Link from 'next/link';
 import FocusMonitor from './components/FocusMonitor';
 import MasteryMap from './components/MasteryMap';
 import { StudentLinkCode } from './components/StudentLinkCode';
@@ -174,6 +175,17 @@ export default function StudentPortal() {
           </div>
         </div>
       </header>
+
+      <div className="glass-panel" style={{ padding: '1.5rem', marginBottom: '1.5rem', display: 'flex', flexWrap: 'wrap', gap: '1rem', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div>
+          <p style={{ margin: 0, color: 'rgba(255,255,255,0.75)' }}>
+            想要查看本週教材、題庫或講義？請點擊「課程內容」。
+          </p>
+        </div>
+        <Link href="/curriculum" className="btn-primary" style={{ whiteSpace: 'nowrap' }}>
+          前往課程內容
+        </Link>
+      </div>
 
       <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
         {(['teaching', 'diagnostic', 'adaptive'] as const).map((tab) => (
