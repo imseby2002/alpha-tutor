@@ -9,6 +9,13 @@ export async function GET(request: Request) {
   const type = searchParams.get("type");
 
   if (code) {
+    // For recovery links, preserve the code so the client can exchange it and set session.
+    if (type === "recovery") {
+      return NextResponse.redirect(
+        `${origin}/reset-password?code=${encodeURIComponent(code)}&type=recovery`
+      );
+    }
+
     const supabase = await createClient();
     const { error } = await supabase.auth.exchangeCodeForSession(code);
 
