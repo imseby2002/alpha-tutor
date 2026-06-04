@@ -14,7 +14,7 @@ import {
   type CurriculumResource,
   SUBJECT_LABEL as CURRICULUM_SUBJECT_LABEL,
 } from "@/lib/curriculum";
-import { getTopicsBySubject } from "@/lib/learning-scenarios";
+import { getTaxonomy } from "@/lib/subject-taxonomy";
 import type { NotebookEntry, NotebookEntryWithResource } from "@/lib/notebook";
 
 const RESOURCE_TYPE_LABEL: Record<string, string> = {
@@ -57,13 +57,12 @@ export default function CurriculumPage() {
   const [aiLoading, setAiLoading] = useState(false);
   const [showAiPanel, setShowAiPanel] = useState(false);
 
-  const browseTopics = useMemo(() => getTopicsBySubject(browseSubject), [browseSubject]);
+  const browseCategories = useMemo(() => getTaxonomy(browseSubject), [browseSubject]);
 
-  const handleSelectTopic = (topicGrade: SchoolGrade, topicSubject: Subject) => {
-    setGrade(topicGrade);
-    setSubject(topicSubject);
+  const handleSelectTopicLabel = (topicLabel: string) => {
+    setSubject(browseSubject);
     setResourceType("");
-    setSearch("");
+    setSearch(topicLabel);
     if (typeof window !== "undefined") {
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
@@ -333,8 +332,8 @@ export default function CurriculumPage() {
 
       <div className="glass-panel" style={{ padding: '1.5rem', marginBottom: '1.5rem' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '1rem' }}>
-          <h2 style={{ fontSize: '1.15rem', margin: 0 }}>按科目瀏覽主題</h2>
-          <span style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.5)' }}>不分年級，依定理 / 單元挑選</span>
+          <h2 style={{ fontSize: '1.15rem', margin: 0 }}>科目細項分類</h2>
+          <span style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.5)' }}>不分年級，依大類 → 小類瀏覽，點小類即可搜尋對應教材</span>
         </div>
 
         <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '1.25rem' }}>
@@ -351,37 +350,48 @@ export default function CurriculumPage() {
           ))}
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '0.75rem' }}>
-          {browseTopics.map((topic) => {
-            const isActive = topic.grade === grade && topic.subject === subject;
-            return (
-              <button
-                key={topic.id}
-                type="button"
-                onClick={() => handleSelectTopic(topic.grade, topic.subject)}
-                className="hover-scale"
-                style={{
-                  textAlign: 'left',
-                  background: isActive ? 'rgba(99, 102, 241, 0.2)' : 'var(--surface)',
-                  border: `1px solid ${isActive ? 'var(--primary)' : 'var(--glass-border)'}`,
-                  borderRadius: '0.75rem',
-                  padding: '1rem',
-                  cursor: 'pointer',
-                  color: 'white',
-                }}
-              >
-                <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.5)', marginBottom: '0.35rem' }}>
-                  {topic.levelLabel}
-                </div>
-                <div style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '0.25rem' }}>
-                  {topic.title}
-                </div>
-                <div style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.6)' }}>
-                  {topic.teachingTopic}
-                </div>
-              </button>
-            );
-          })}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1rem', alignItems: 'start' }}>
+          {browseCategories.map((category) => (
+            <div
+              key={category.id}
+              style={{
+                background: 'var(--surface)',
+                border: '1px solid var(--glass-border)',
+                borderRadius: '0.75rem',
+                padding: '1rem',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
+                <span style={{ width: '0.4rem', height: '1.05rem', borderRadius: '999px', background: 'var(--primary)' }} />
+                <h3 style={{ margin: 0, fontSize: '0.98rem', fontWeight: 700 }}>{category.label}</h3>
+                <span style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.4)' }}>{category.topics.length}</span>
+              </div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
+                {category.topics.map((topic) => {
+                  const isActive = subject === browseSubject && search === topic.label;
+                  return (
+                    <button
+                      key={topic.id}
+                      type="button"
+                      onClick={() => handleSelectTopicLabel(topic.label)}
+                      className="hover-scale"
+                      style={{
+                        background: isActive ? 'rgba(99, 102, 241, 0.25)' : 'rgba(255,255,255,0.04)',
+                        border: `1px solid ${isActive ? 'var(--primary)' : 'var(--glass-border)'}`,
+                        borderRadius: '999px',
+                        padding: '0.3rem 0.7rem',
+                        fontSize: '0.8rem',
+                        cursor: 'pointer',
+                        color: 'white',
+                      }}
+                    >
+                      {topic.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
         </div>
       </div>
 
