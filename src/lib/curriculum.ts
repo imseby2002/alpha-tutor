@@ -52,13 +52,14 @@ export const SUBJECTS_BY_COUNTRY: Record<CountryCode, CurriculumSubject[]> = {
   KR: ["english", "math", "physics", "chemistry", "biology", "geography", "history"],
 };
 
-export type CurriculumResourceType = "textbook" | "questionBank" | "exam" | "lessonNotes";
+export type CurriculumResourceType = "textbook" | "questionBank" | "exam" | "lessonNotes" | "reference";
 
 export const CURRICULUM_RESOURCE_DB_TYPE: Record<CurriculumResourceType, string> = {
   textbook: "textbook",
   questionBank: "question_bank",
   exam: "exam",
   lessonNotes: "lesson_notes",
+  reference: "reference",
 };
 
 const DB_TYPE_TO_CURRICULUM_RESOURCE: Record<string, CurriculumResourceType> = {
@@ -66,6 +67,7 @@ const DB_TYPE_TO_CURRICULUM_RESOURCE: Record<string, CurriculumResourceType> = {
   question_bank: "questionBank",
   exam: "exam",
   lesson_notes: "lessonNotes",
+  reference: "reference",
 };
 
 export function isValidCurriculumResourceType(

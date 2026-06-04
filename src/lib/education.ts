@@ -15,18 +15,18 @@ export type SchoolGrade =
 export type Subject = "math" | "english" | "chinese" | "science" | "social";
 
 export const GRADE_LABEL: Record<SchoolGrade, string> = {
-  G1: "國小一年級",
-  G2: "國小二年級",
-  G3: "國小三年級",
-  G4: "國小四年級",
-  G5: "國小五年級",
-  G6: "國小六年級",
-  G7: "國中一年級",
-  G8: "國中二年級",
-  G9: "國中三年級",
-  G10: "高中一年級",
-  G11: "高中二年級",
-  G12: "高中三年級",
+  G1: "1年級",
+  G2: "2年級",
+  G3: "3年級",
+  G4: "4年級",
+  G5: "5年級",
+  G6: "6年級",
+  G7: "7（初一）",
+  G8: "8（初二）",
+  G9: "9（初三）",
+  G10: "10（高一）",
+  G11: "11（高二）",
+  G12: "12（高三）",
 };
 
 export const SUBJECT_LABEL: Record<Subject, string> = {

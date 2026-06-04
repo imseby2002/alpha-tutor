@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { LinkedStudent } from '@/lib/guide-students';
 import {
   ALL_GRADES,
@@ -10,14 +10,15 @@ import {
   type SchoolGrade,
   type Subject,
 } from '@/lib/education';
+import {
+  type CurriculumResource,
+  type CurriculumResourceType,
+  type CurriculumSubject,
+  SUBJECT_LABEL as CURRICULUM_SUBJECT_LABEL,
+  TAIWAN_CORE_SUBJECTS,
+} from '@/lib/curriculum';
 
 type StudentStatus = 'focused' | 'distracted' | 'struggling';
-
-const STATUS_LABEL: Record<StudentStatus, string> = {
-  focused: '專注',
-  distracted: '分心',
-  struggling: '需要協助',
-};
 
 type GuideStudent = {
   id: number;
@@ -30,42 +31,183 @@ type GuideStudent = {
   subject: Subject;
 };
 
+type GuideClass = {
+  id: string;
+  name: string;
+};
+
 type Props = {
   initialLinkedStudents: LinkedStudent[];
 };
+
+const RESOURCE_TYPE_OPTIONS: { value: CurriculumResourceType; label: string }[] = [
+  { value: 'textbook', label: '教材' },
+  { value: 'questionBank', label: '題庫' },
+  { value: 'exam', label: '試題' },
+  { value: 'lessonNotes', label: '講義／筆記' },
+  { value: 'reference', label: '參考資料' },
+];
+
+function formatResourceType(type: CurriculumResourceType) {
+  return RESOURCE_TYPE_OPTIONS.find((item) => item.value === type)?.label ?? type;
+}
 
 export default function GuidePortalClient({ initialLinkedStudents }: Props) {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'upload'>('dashboard');
   const [grade, setGrade] = useState<SchoolGrade>('G9');
   const [subject, setSubject] = useState<Subject>('math');
   const [linkedStudents, setLinkedStudents] = useState<LinkedStudent[]>(initialLinkedStudents);
-  const [enrollCode, setEnrollCode] = useState("");
+  const [enrollCode, setEnrollCode] = useState('');
   const [enrollMsg, setEnrollMsg] = useState<string | null>(null);
   const [enrollErr, setEnrollErr] = useState<string | null>(null);
 
+  const [classes, setClasses] = useState<GuideClass[]>([]);
+  const [selectedClassId, setSelectedClassId] = useState('');
+  const [guideResources, setGuideResources] = useState<CurriculumResource[]>([]);
+  const [resourceError, setResourceError] = useState<string | null>(null);
+
+  const [uploadTitle, setUploadTitle] = useState('');
+  const [uploadDescription, setUploadDescription] = useState('');
+  const [uploadType, setUploadType] = useState<CurriculumResourceType>('textbook');
+  const [uploadGrade, setUploadGrade] = useState<SchoolGrade>('G9');
+  const [uploadSubject, setUploadSubject] = useState<CurriculumSubject>('math');
+  const [uploadSourceUrl, setUploadSourceUrl] = useState('');
+  const [fileToUpload, setFileToUpload] = useState<File | null>(null);
+  const [uploadStatus, setUploadStatus] = useState<'idle' | 'uploading' | 'success' | 'failed'>('idle');
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [uploadSuccess, setUploadSuccess] = useState<string | null>(null);
+
   const loadLinkedStudents = useCallback(async () => {
-    const res = await fetch("/api/guide/students");
+    const res = await fetch('/api/guide/students');
     const data = await res.json();
     if (res.ok) setLinkedStudents(data.students ?? []);
   }, []);
+
+  const loadGuideData = useCallback(async () => {
+    setResourceError(null);
+    try {
+      const [classesRes, resourcesRes] = await Promise.all([
+        fetch('/api/guide/classes'),
+        fetch('/api/guide/materials'),
+      ]);
+
+      const classesJson = await classesRes.json();
+      if (classesRes.ok) {
+        setClasses(classesJson.classes ?? []);
+        setSelectedClassId((current) => {
+          if (current) return current;
+          if (Array.isArray(classesJson.classes) && classesJson.classes.length > 0) {
+            return classesJson.classes[0].id;
+          }
+          return current;
+        });
+      }
+
+      const resourcesJson = await resourcesRes.json();
+      if (resourcesRes.ok) {
+        setGuideResources(resourcesJson.resources ?? []);
+      } else {
+        setResourceError(resourcesJson.error ?? '無法載入已上架教材');
+      }
+    } catch {
+      setResourceError('無法載入導師資料');
+    }
+  }, []);
+
+  useEffect(() => {
+    async function initGuideData() {
+      await loadGuideData();
+    }
+    void initGuideData();
+  }, [loadGuideData]);
 
   const handleEnroll = async (e: React.FormEvent) => {
     e.preventDefault();
     setEnrollMsg(null);
     setEnrollErr(null);
-    const res = await fetch("/api/guide/enroll", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
+    const res = await fetch('/api/guide/enroll', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ linkCode: enrollCode }),
     });
     const data = await res.json();
     if (!res.ok) {
-      setEnrollErr(data.error ?? "收學生失敗");
+      setEnrollErr(data.error ?? '收學生失敗');
       return;
     }
-    setEnrollMsg(`已加入學生：${data.student?.display_name ?? "學生"}`);
-    setEnrollCode("");
+    setEnrollMsg(`已加入學生：${data.student?.display_name ?? '學生'}`);
+    setEnrollCode('');
     await loadLinkedStudents();
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selected = e.target.files?.[0] ?? null;
+    setFileToUpload(selected);
+    e.target.value = '';
+  };
+
+  const handleUploadReset = () => {
+    setUploadTitle('');
+    setUploadDescription('');
+    setUploadType('textbook');
+    setUploadGrade('G9');
+    setUploadSubject('math');
+    setUploadSourceUrl('');
+    setFileToUpload(null);
+    setUploadStatus('idle');
+    setUploadError(null);
+    setUploadSuccess(null);
+  };
+
+  const handleUploadSubmit = async () => {
+    setUploadError(null);
+    setUploadSuccess(null);
+
+    if (!uploadTitle.trim()) {
+      setUploadError('請填寫教材標題');
+      return;
+    }
+
+    if (!selectedClassId) {
+      setUploadError('請選擇班級');
+      return;
+    }
+
+    if (!fileToUpload && !uploadSourceUrl.trim()) {
+      setUploadError('請上傳教材檔案或填寫外部連結');
+      return;
+    }
+
+    setUploadStatus('uploading');
+
+    const formData = new FormData();
+    formData.append('title', uploadTitle.trim());
+    formData.append('description', uploadDescription.trim());
+    formData.append('type', uploadType);
+    formData.append('grade', uploadGrade);
+    formData.append('subject', uploadSubject);
+    formData.append('sourceUrl', uploadSourceUrl.trim());
+    formData.append('classId', selectedClassId);
+    if (fileToUpload) {
+      formData.append('file', fileToUpload);
+    }
+
+    const res = await fetch('/api/guide/materials', {
+      method: 'POST',
+      body: formData,
+    });
+    const data = await res.json();
+
+    if (!res.ok) {
+      setUploadStatus('failed');
+      setUploadError(data.error || '上傳失敗');
+      return;
+    }
+
+    setUploadStatus('success');
+    setUploadSuccess(`已上架：${data.resource?.title ?? '教材'}`);
+    handleUploadReset();
+    void loadGuideData();
   };
 
   const [students] = useState<GuideStudent[]>([
@@ -79,24 +221,6 @@ export default function GuidePortalClient({ initialLinkedStudents }: Props) {
     () => students.filter((s) => s.grade === grade && s.subject === subject),
     [students, grade, subject]
   );
-
-  const [uploadStatus, setUploadStatus] = useState<'idle' | 'uploading' | 'processing' | 'success'>('idle');
-  const [progress, setProgress] = useState(0);
-
-  const handleTeacherUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files || e.target.files.length === 0) return;
-    setUploadStatus('uploading');
-    
-    setTimeout(() => {
-      setUploadStatus('processing');
-      setProgress(50);
-      
-      setTimeout(() => {
-        setProgress(100);
-        setUploadStatus('success');
-      }, 2000);
-    }, 1500);
-  };
 
   const statusStyle = (status: StudentStatus) => {
     if (status === 'focused') return { bg: 'rgba(16, 185, 129, 0.2)', color: 'var(--accent)' };
@@ -296,6 +420,25 @@ export default function GuidePortalClient({ initialLinkedStudents }: Props) {
               </tbody>
             </table>
           </div>
+
+          {guideResources.length > 0 && (
+            <div className="glass-panel" style={{ marginTop: '2rem', padding: '1.5rem' }}>
+              <h2 style={{ marginBottom: '1rem' }}>已上架教材預覽</h2>
+              <div style={{ display: 'grid', gap: '1rem' }}>
+                {guideResources.slice(0, 3).map((resource) => (
+                  <div key={resource.id} style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
+                    <div style={{ minWidth: 0 }}>
+                      <p style={{ margin: 0, fontSize: '0.9rem', color: 'rgba(255,255,255,0.65)' }}>
+                        {GRADE_LABEL[resource.grade]} • {CURRICULUM_SUBJECT_LABEL[resource.subject]} • {formatResourceType(resource.type)}
+                      </p>
+                      <h3 style={{ margin: '0.35rem 0 0', fontSize: '1.05rem' }}>{resource.title}</h3>
+                    </div>
+                    <span style={{ color: 'rgba(255,255,255,0.75)', fontSize: '0.9rem' }}>{resource.publisher || '教師上傳'}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </>
       ) : (
         <div className="glass-panel" style={{ padding: '3rem 2rem', textAlign: 'center' }}>
@@ -304,31 +447,153 @@ export default function GuidePortalClient({ initialLinkedStudents }: Props) {
             上傳學校或補習班專用教材，AI 會自動擷取題目，並在下次學習時依學生程度動態調整難度。
           </p>
 
-          <label className="btn-primary" style={{ display: 'inline-block', cursor: 'pointer' }}>
-            選擇檔案（PDF／圖片）
-            <input 
-              type="file" 
-              accept=".pdf,image/*" 
-              style={{ display: 'none' }} 
-              onChange={handleTeacherUpload}
-              disabled={uploadStatus === 'uploading' || uploadStatus === 'processing'}
-            />
-          </label>
+          <div style={{ display: 'grid', gap: '1rem', maxWidth: '680px', margin: '0 auto 1.5rem', textAlign: 'left' }}>
+            <label style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+              <span style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.75)' }}>對應班級</span>
+              <select
+                value={selectedClassId}
+                onChange={(e) => setSelectedClassId(e.target.value)}
+                style={{ padding: '0.9rem 1rem', borderRadius: '0.75rem', border: '1px solid var(--glass-border)', background: 'var(--surface)', color: 'white' }}
+              >
+                <option value="">請選擇班級</option>
+                {classes.map((item) => (
+                  <option key={item.id} value={item.id}>{item.name}</option>
+                ))}
+              </select>
+            </label>
 
-          {uploadStatus !== 'idle' && (
-             <div style={{ marginTop: '2rem', maxWidth: '500px', margin: '2rem auto 0', textAlign: 'left' }}>
-               <p style={{ marginBottom: '0.5rem', fontSize: '0.9rem', color: 'var(--accent)' }}>
-                 {uploadStatus === 'success' ? '✔ 測驗已數位化並指派給你的班級！' : 'AI 擷取處理中…'}
-               </p>
-               <div style={{ background: 'var(--surface)', borderRadius: '999px', height: '6px', overflow: 'hidden' }}>
-                  <div style={{ 
-                    width: `${progress}%`, 
-                    height: '100%', 
-                    background: uploadStatus === 'success' ? 'var(--accent)' : 'var(--primary)',
-                    transition: 'width 0.5s ease'
-                  }}></div>
-               </div>
-             </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+              <label style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+                <span style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.75)' }}>年級</span>
+                <select
+                  value={uploadGrade}
+                  onChange={(e) => setUploadGrade(e.target.value as SchoolGrade)}
+                  style={{ padding: '0.9rem 1rem', borderRadius: '0.75rem', border: '1px solid var(--glass-border)', background: 'var(--surface)', color: 'white' }}
+                >
+                  {ALL_GRADES.map((g) => (
+                    <option key={g} value={g}>{GRADE_LABEL[g]}</option>
+                  ))}
+                </select>
+              </label>
+
+              <label style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+                <span style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.75)' }}>科目</span>
+                <select
+                  value={uploadSubject}
+                  onChange={(e) => setUploadSubject(e.target.value as CurriculumSubject)}
+                  style={{ padding: '0.9rem 1rem', borderRadius: '0.75rem', border: '1px solid var(--glass-border)', background: 'var(--surface)', color: 'white' }}
+                >
+                  {TAIWAN_CORE_SUBJECTS.map((s) => (
+                    <option key={s} value={s}>{CURRICULUM_SUBJECT_LABEL[s]}</option>
+                  ))}
+                </select>
+              </label>
+            </div>
+
+            <label style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+              <span style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.75)' }}>教材類型</span>
+              <select
+                value={uploadType}
+                onChange={(e) => setUploadType(e.target.value as CurriculumResourceType)}
+                style={{ padding: '0.9rem 1rem', borderRadius: '0.75rem', border: '1px solid var(--glass-border)', background: 'var(--surface)', color: 'white' }}
+              >
+                {RESOURCE_TYPE_OPTIONS.map((item) => (
+                  <option key={item.value} value={item.value}>{item.label}</option>
+                ))}
+              </select>
+            </label>
+
+            <label style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+              <span style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.75)' }}>教材標題</span>
+              <input
+                value={uploadTitle}
+                onChange={(e) => setUploadTitle(e.target.value)}
+                placeholder="例如：第二冊數學講義"
+                style={{ padding: '0.9rem 1rem', borderRadius: '0.75rem', border: '1px solid var(--glass-border)', background: 'var(--surface)', color: 'white' }}
+              />
+            </label>
+
+            <label style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+              <span style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.75)' }}>說明</span>
+              <textarea
+                value={uploadDescription}
+                onChange={(e) => setUploadDescription(e.target.value)}
+                placeholder="可填寫教材重點、來源、適用章節"
+                rows={4}
+                style={{ padding: '0.9rem 1rem', borderRadius: '0.75rem', border: '1px solid var(--glass-border)', background: 'var(--surface)', color: 'white', resize: 'vertical' }}
+              />
+            </label>
+
+            <label style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+              <span style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.75)' }}>教材檔案</span>
+              <input
+                type="file"
+                accept=".pdf,image/*"
+                onChange={handleFileSelect}
+                style={{ padding: '0.9rem 1rem', borderRadius: '0.75rem', border: '1px solid var(--glass-border)', background: 'var(--surface)', color: 'white' }}
+              />
+              {fileToUpload && <span style={{ color: 'rgba(255,255,255,0.65)', fontSize: '0.85rem' }}>{fileToUpload.name}</span>}
+            </label>
+
+            <label style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+              <span style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.75)' }}>外部連結（選填）</span>
+              <input
+                value={uploadSourceUrl}
+                onChange={(e) => setUploadSourceUrl(e.target.value)}
+                placeholder="教材雲端連結或題庫網址"
+                style={{ padding: '0.9rem 1rem', borderRadius: '0.75rem', border: '1px solid var(--glass-border)', background: 'var(--surface)', color: 'white' }}
+              />
+            </label>
+
+            <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+              <button
+                type="button"
+                className="btn-secondary"
+                onClick={handleUploadReset}
+                disabled={uploadStatus === 'uploading'}
+              >
+                清除
+              </button>
+              <button
+                type="button"
+                className="btn-primary"
+                onClick={handleUploadSubmit}
+                disabled={uploadStatus === 'uploading'}
+              >
+                {uploadStatus === 'uploading' ? '上傳中…' : '上傳教材'}
+              </button>
+            </div>
+
+            {uploadError && <p style={{ color: 'var(--danger)', marginTop: '0.5rem' }}>{uploadError}</p>}
+            {uploadSuccess && <p style={{ color: 'var(--accent)', marginTop: '0.5rem' }}>{uploadSuccess}</p>}
+          </div>
+
+          {resourceError && (
+            <div className="glass-panel" style={{ marginTop: '1.5rem', padding: '1rem', background: 'rgba(239,68,68,0.12)', border: '1px solid var(--danger)' }}>
+              <p style={{ margin: 0, color: 'var(--danger)' }}>{resourceError}</p>
+            </div>
+          )}
+
+          {guideResources.length > 0 && (
+            <div style={{ marginTop: '2rem', maxWidth: '920px', marginLeft: 'auto', marginRight: 'auto' }}>
+              <h3 style={{ marginBottom: '1rem' }}>已上架教材</h3>
+              <div style={{ display: 'grid', gap: '1rem' }}>
+                {guideResources.map((resource) => (
+                  <div key={resource.id} className="glass-panel" style={{ padding: '1rem', borderRadius: '1rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
+                      <div style={{ minWidth: 0 }}>
+                        <p style={{ margin: 0, fontSize: '0.9rem', color: 'rgba(255,255,255,0.65)' }}>
+                          {GRADE_LABEL[resource.grade]} • {CURRICULUM_SUBJECT_LABEL[resource.subject]} • {formatResourceType(resource.type)}
+                        </p>
+                        <h4 style={{ margin: '0.35rem 0 0', fontSize: '1.05rem' }}>{resource.title}</h4>
+                      </div>
+                      <span style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.75)' }}>{resource.publisher || '教師上傳'}</span>
+                    </div>
+                    <p style={{ margin: '0.75rem 0 0', color: 'rgba(255,255,255,0.7)' }}>{resource.description ?? '未提供說明。'}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
           )}
         </div>
       )}
