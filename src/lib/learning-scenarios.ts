@@ -328,3 +328,62 @@ export function getScenario(grade: SchoolGrade, subject: Subject): LearningScena
   if (subject === "science") return SCIENCE_BY_BAND[band];
   return SOCIAL_BY_BAND[band];
 }
+
+export type TopicEntry = {
+  id: string;
+  subject: Subject;
+  grade: SchoolGrade;
+  title: string;
+  teachingTopic: string;
+  levelLabel: string;
+};
+
+const ALL_GRADES_ORDER: SchoolGrade[] = [
+  "G1", "G2", "G3", "G4", "G5", "G6", "G7", "G8", "G9", "G10", "G11", "G12",
+];
+
+const BAND_REPRESENTATIVE: Record<GradeBand, { grade: SchoolGrade; label: string }> = {
+  elementary: { grade: "G3", label: "國小" },
+  junior: { grade: "G8", label: "國中" },
+  senior: { grade: "G11", label: "高中" },
+};
+
+// 不分年級，依科目列出所有主題（定理／單元）
+export function getTopicsBySubject(subject: Subject): TopicEntry[] {
+  if (subject === "math") {
+    return ALL_GRADES_ORDER.map((grade) => {
+      const s = MATH_SCENARIOS[grade];
+      const year = Number.parseInt(grade.slice(1), 10);
+      return {
+        id: `math-${grade}`,
+        subject,
+        grade,
+        title: s.diagnostic.title,
+        teachingTopic: s.teaching.topic,
+        levelLabel: `${year} 年級`,
+      };
+    });
+  }
+
+  const byBand: Record<GradeBand, LearningScenario> =
+    subject === "english"
+      ? ENGLISH_BY_BAND
+      : subject === "chinese"
+      ? CHINESE_BY_BAND
+      : subject === "science"
+      ? SCIENCE_BY_BAND
+      : SOCIAL_BY_BAND;
+
+  return (["elementary", "junior", "senior"] as const).map((band) => {
+    const s = byBand[band];
+    const rep = BAND_REPRESENTATIVE[band];
+    return {
+      id: `${subject}-${band}`,
+      subject,
+      grade: rep.grade,
+      title: s.diagnostic.title,
+      teachingTopic: s.teaching.topic,
+      levelLabel: rep.label,
+    };
+  });
+}

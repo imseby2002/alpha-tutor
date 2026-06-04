@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type ChangeEvent } from "react";
+import { useEffect, useMemo, useState, type ChangeEvent } from "react";
 import Link from "next/link";
 import {
   ALL_GRADES,
@@ -14,6 +14,7 @@ import {
   type CurriculumResource,
   SUBJECT_LABEL as CURRICULUM_SUBJECT_LABEL,
 } from "@/lib/curriculum";
+import { getTopicsBySubject } from "@/lib/learning-scenarios";
 import type { NotebookEntry, NotebookEntryWithResource } from "@/lib/notebook";
 
 const RESOURCE_TYPE_LABEL: Record<string, string> = {
@@ -38,6 +39,7 @@ function getPreviewText(resource: CurriculumResource) {
 export default function CurriculumPage() {
   const [grade, setGrade] = useState<SchoolGrade>("G9");
   const [subject, setSubject] = useState<Subject>("math");
+  const [browseSubject, setBrowseSubject] = useState<Subject>("math");
   const [resourceType, setResourceType] = useState<string>("");
   const [search, setSearch] = useState("");
   const [resources, setResources] = useState<CurriculumResource[]>([]);
@@ -54,6 +56,18 @@ export default function CurriculumPage() {
   const [aiResult, setAiResult] = useState<string | null>(null);
   const [aiLoading, setAiLoading] = useState(false);
   const [showAiPanel, setShowAiPanel] = useState(false);
+
+  const browseTopics = useMemo(() => getTopicsBySubject(browseSubject), [browseSubject]);
+
+  const handleSelectTopic = (topicGrade: SchoolGrade, topicSubject: Subject) => {
+    setGrade(topicGrade);
+    setSubject(topicSubject);
+    setResourceType("");
+    setSearch("");
+    if (typeof window !== "undefined") {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
 
   const resetNoteState = () => {
     setSelectedNote(null);
@@ -314,6 +328,60 @@ export default function CurriculumPage() {
               style={{ padding: "0.75rem 1rem", borderRadius: "0.75rem", border: "1px solid var(--glass-border)", background: "var(--surface)", color: "white" }}
             />
           </label>
+        </div>
+      </div>
+
+      <div className="glass-panel" style={{ padding: '1.5rem', marginBottom: '1.5rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '1rem' }}>
+          <h2 style={{ fontSize: '1.15rem', margin: 0 }}>按科目瀏覽主題</h2>
+          <span style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.5)' }}>不分年級，依定理 / 單元挑選</span>
+        </div>
+
+        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '1.25rem' }}>
+          {ALL_SUBJECTS.map((s) => (
+            <button
+              key={s}
+              type="button"
+              onClick={() => setBrowseSubject(s)}
+              className={s === browseSubject ? 'btn-primary' : 'btn-secondary'}
+              style={{ padding: '0.45rem 1rem', fontSize: '0.85rem' }}
+            >
+              {SUBJECT_LABEL[s]}
+            </button>
+          ))}
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '0.75rem' }}>
+          {browseTopics.map((topic) => {
+            const isActive = topic.grade === grade && topic.subject === subject;
+            return (
+              <button
+                key={topic.id}
+                type="button"
+                onClick={() => handleSelectTopic(topic.grade, topic.subject)}
+                className="hover-scale"
+                style={{
+                  textAlign: 'left',
+                  background: isActive ? 'rgba(99, 102, 241, 0.2)' : 'var(--surface)',
+                  border: `1px solid ${isActive ? 'var(--primary)' : 'var(--glass-border)'}`,
+                  borderRadius: '0.75rem',
+                  padding: '1rem',
+                  cursor: 'pointer',
+                  color: 'white',
+                }}
+              >
+                <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.5)', marginBottom: '0.35rem' }}>
+                  {topic.levelLabel}
+                </div>
+                <div style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '0.25rem' }}>
+                  {topic.title}
+                </div>
+                <div style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.6)' }}>
+                  {topic.teachingTopic}
+                </div>
+              </button>
+            );
+          })}
         </div>
       </div>
 
