@@ -20,6 +20,12 @@ import {
 
 type StudentStatus = 'focused' | 'distracted' | 'struggling';
 
+const STATUS_LABEL: Record<StudentStatus, string> = {
+  focused: '專注',
+  distracted: '分心',
+  struggling: '卡關',
+};
+
 type GuideStudent = {
   id: number;
   name: string;
