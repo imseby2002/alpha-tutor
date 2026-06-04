@@ -1,7 +1,20 @@
 import type { Subject } from "@/lib/education";
 
-// 不分年級的科目分類：大類（strand）→ 小類（topic）
-// 依台灣 12 年國教課綱整理，盡量涵蓋國小到高中的常見單元。
+// 不分年級的科目分類：科目 → 大類（strand）→ 小類（topic）
+// 「自然」與「社會」拆成各自獨立的科目，不再作為單一品項。
+// 依台灣 12 年國教課綱（108 課綱）整理，涵蓋國小到高中常見單元。
+
+export type TaxonomySubject =
+  | "math"
+  | "english"
+  | "chinese"
+  | "physics"
+  | "chemistry"
+  | "biology"
+  | "earth"
+  | "history"
+  | "geography"
+  | "civics";
 
 export type TaxonomyTopic = {
   id: string;
@@ -14,8 +27,48 @@ export type TaxonomyCategory = {
   topics: TaxonomyTopic[];
 };
 
+export const TAXONOMY_SUBJECTS: TaxonomySubject[] = [
+  "math",
+  "english",
+  "chinese",
+  "physics",
+  "chemistry",
+  "biology",
+  "earth",
+  "history",
+  "geography",
+  "civics",
+];
+
+export const TAXONOMY_SUBJECT_LABEL: Record<TaxonomySubject, string> = {
+  math: "數學",
+  english: "英文",
+  chinese: "國文",
+  physics: "物理",
+  chemistry: "化學",
+  biology: "生物",
+  earth: "地球科學",
+  history: "歷史",
+  geography: "地理",
+  civics: "公民",
+};
+
+// 對應到課程資源篩選用的粗分類科目
+export const TAXONOMY_SUBJECT_TO_COARSE: Record<TaxonomySubject, Subject> = {
+  math: "math",
+  english: "english",
+  chinese: "chinese",
+  physics: "science",
+  chemistry: "science",
+  biology: "science",
+  earth: "science",
+  history: "social",
+  geography: "social",
+  civics: "social",
+};
+
 function makeCategory(
-  subject: Subject,
+  subject: TaxonomySubject,
   id: string,
   label: string,
   topics: string[]
@@ -222,98 +275,325 @@ const CHINESE: TaxonomyCategory[] = [
   ]),
 ];
 
-const SCIENCE: TaxonomyCategory[] = [
-  makeCategory("science", "physics", "物理", [
+const PHYSICS: TaxonomyCategory[] = [
+  makeCategory("physics", "mechanics", "力學", [
     "測量與單位",
-    "力與運動（牛頓運動定律）",
-    "功、能量與功率",
-    "動量與碰撞",
-    "簡諧運動",
-    "熱學",
-    "波動與聲音",
-    "光學（反射與折射）",
-    "靜電學",
-    "電流與電路",
+    "速度與加速度",
+    "直線運動",
+    "牛頓運動定律",
+    "力的合成與分解",
+    "摩擦力",
+    "拋體運動",
+    "圓周運動",
+    "萬有引力與重力",
+  ]),
+  makeCategory("physics", "energy", "功與能量", [
+    "功與功率",
+    "動能與位能",
+    "力學能守恆",
+    "動量與衝量",
+    "碰撞",
+  ]),
+  makeCategory("physics", "thermal", "熱學", [
+    "溫度與熱量",
+    "比熱與潛熱",
+    "熱膨脹",
+    "氣體動力論",
+    "熱力學定律",
+  ]),
+  makeCategory("physics", "wave", "波動與聲音", [
+    "振動與簡諧運動",
+    "波的性質",
+    "聲波與共振",
+    "都卜勒效應",
+  ]),
+  makeCategory("physics", "optics", "光學", [
+    "光的反射",
+    "平面鏡與球面鏡",
+    "光的折射",
+    "透鏡成像",
+    "光的干涉與繞射",
+    "色散與光譜",
+  ]),
+  makeCategory("physics", "em", "電磁學", [
+    "靜電與庫侖定律",
+    "電場與電位",
+    "電容",
+    "電流與電阻",
+    "歐姆定律與電路",
+    "電功率",
+    "磁場與磁力",
     "電磁感應",
-    "近代物理（量子與原子）",
+    "交流電",
   ]),
-  makeCategory("science", "chemistry", "化學", [
-    "物質的組成與分類",
-    "原子結構與週期表",
-    "化學鍵",
-    "化學計量（莫耳）",
-    "溶液與濃度",
-    "酸、鹼、鹽",
-    "氧化還原反應",
+  makeCategory("physics", "modern", "近代物理", [
+    "光電效應",
+    "原子模型",
+    "量子論初步",
+    "原子核與放射性",
+    "相對論初步",
+  ]),
+];
+
+const CHEMISTRY: TaxonomyCategory[] = [
+  makeCategory("chemistry", "matter", "物質與分類", [
+    "物質的三態與變化",
+    "純物質與混合物",
+    "分離技術",
+    "物理變化與化學變化",
+  ]),
+  makeCategory("chemistry", "atom", "原子與週期表", [
+    "原子結構",
+    "電子組態",
+    "元素週期表",
+    "同位素",
+  ]),
+  makeCategory("chemistry", "bond", "化學鍵與結構", [
+    "離子鍵",
+    "共價鍵",
+    "金屬鍵",
+    "分子形狀與極性",
+    "分子間作用力",
+  ]),
+  makeCategory("chemistry", "stoich", "化學計量", [
+    "莫耳概念",
+    "化學式與化學方程式",
+    "反應的質量關係",
+    "溶液濃度",
+    "氣體定律",
+  ]),
+  makeCategory("chemistry", "reaction", "反應速率與平衡", [
     "反應速率",
+    "影響速率的因素",
     "化學平衡",
-    "電化學",
-    "有機化合物",
+    "勒沙特列原理",
   ]),
-  makeCategory("science", "biology", "生物", [
-    "細胞的構造與功能",
-    "生物分子與酵素",
-    "光合作用與呼吸作用",
-    "遺傳與基因",
-    "生殖與發育",
-    "演化與生物分類",
-    "人體生理（消化、循環、神經）",
-    "免疫與內分泌",
-    "植物的構造與功能",
-    "生態系與能量流動",
+  makeCategory("chemistry", "acidbase", "酸鹼鹽", [
+    "酸鹼的定義",
+    "pH 值與指示劑",
+    "中和反應",
+    "鹽類",
+    "緩衝溶液",
+  ]),
+  makeCategory("chemistry", "redox", "氧化還原與電化學", [
+    "氧化數",
+    "氧化還原反應",
+    "電池（化學電池）",
+    "電解",
+  ]),
+  makeCategory("chemistry", "organic", "有機化學", [
+    "碳氫化合物（烷烯炔）",
+    "官能基",
+    "醇、醛、酮、酸、酯",
+    "聚合物",
+    "生物有機分子",
+  ]),
+];
+
+const BIOLOGY: TaxonomyCategory[] = [
+  makeCategory("biology", "cell", "生命的組成", [
+    "細胞構造",
+    "細胞膜與物質運輸",
+    "生物分子（醣、脂質、蛋白質、核酸）",
+    "酵素",
+  ]),
+  makeCategory("biology", "metabolism", "能量與代謝", [
+    "光合作用",
+    "呼吸作用",
+    "營養與消化",
+  ]),
+  makeCategory("biology", "homeostasis", "恆定與運輸", [
+    "循環系統",
+    "呼吸系統",
+    "排泄與滲透調節",
+    "神經系統",
+    "內分泌系統",
+    "免疫系統",
+  ]),
+  makeCategory("biology", "genetics", "生殖與遺傳", [
+    "細胞分裂（有絲、減數）",
+    "有性與無性生殖",
+    "孟德爾遺傳",
+    "染色體與性別決定",
+    "DNA 與基因表現",
+    "生物技術與基因工程",
+  ]),
+  makeCategory("biology", "evolution", "演化與多樣性", [
+    "天擇與演化證據",
+    "物種形成",
+    "生物分類與命名",
+    "五界與三域系統",
+  ]),
+  makeCategory("biology", "plant", "植物的構造與功能", [
+    "根、莖、葉",
+    "水分與養分運輸",
+    "開花與繁殖",
+    "植物激素與感應",
+  ]),
+  makeCategory("biology", "ecology", "生態學", [
+    "族群與群落",
+    "生態系結構",
+    "能量流與食物鏈",
+    "物質循環",
     "生物多樣性與保育",
   ]),
-  makeCategory("science", "earth", "地球科學", [
-    "地球的構造與板塊",
+];
+
+const EARTH: TaxonomyCategory[] = [
+  makeCategory("earth", "solid", "固體地球", [
+    "地球的構造",
+    "板塊運動",
     "岩石與礦物",
-    "地震與火山",
-    "大氣與天氣",
-    "氣候與全球變遷",
-    "海洋",
-    "天文（太陽系與星體）",
-    "宇宙與星系",
+    "地震",
+    "火山",
+    "風化、侵蝕與沉積",
+  ]),
+  makeCategory("earth", "atmosphere", "大氣", [
+    "大氣組成與結構",
+    "氣溫與氣壓",
+    "風與氣團",
+    "鋒面與天氣系統",
+    "雲與降水",
+    "氣象觀測與預報",
+  ]),
+  makeCategory("earth", "ocean", "水圈與海洋", [
+    "水循環",
+    "海水的性質",
+    "洋流",
+    "潮汐與波浪",
+  ]),
+  makeCategory("earth", "climate", "氣候與環境變遷", [
+    "氣候帶與成因",
+    "聖嬰與反聖嬰現象",
+    "全球暖化與溫室效應",
+    "自然災害與防治",
+  ]),
+  makeCategory("earth", "astronomy", "天文", [
+    "地球運動與四季",
+    "月相、日食與月食",
+    "太陽系",
+    "恆星與星系",
+    "宇宙的起源與演化",
   ]),
 ];
 
-const SOCIAL: TaxonomyCategory[] = [
-  makeCategory("social", "history", "歷史", [
-    "史前與文明起源",
-    "台灣史",
-    "中國史（朝代演變）",
-    "世界古文明",
-    "中古與近代世界史",
-    "兩次世界大戰與冷戰",
-    "歷史探究方法",
+const HISTORY: TaxonomyCategory[] = [
+  makeCategory("history", "method", "史學方法", [
+    "史料與證據",
+    "歷史分期",
+    "歷史解釋與多元觀點",
   ]),
-  makeCategory("social", "geography", "地理", [
-    "地圖與 GIS 技能",
+  makeCategory("history", "taiwan", "台灣史", [
+    "史前文化與原住民族",
+    "荷西與明鄭時期",
+    "清領時期",
+    "日治時期",
+    "戰後台灣與民主化",
+  ]),
+  makeCategory("history", "china", "中國史", [
+    "先秦（夏商周）",
+    "秦漢",
+    "魏晉南北朝",
+    "隋唐",
+    "宋元",
+    "明清",
+    "近現代中國",
+  ]),
+  makeCategory("history", "world", "世界史", [
+    "上古文明（兩河、埃及）",
+    "希臘與羅馬",
+    "中古歐洲與伊斯蘭",
+    "文藝復興與宗教改革",
+    "大航海與帝國主義",
+    "兩次世界大戰",
+    "冷戰與當代世界",
+  ]),
+];
+
+const GEOGRAPHY: TaxonomyCategory[] = [
+  makeCategory("geography", "skill", "地理技能", [
+    "地圖判讀",
+    "比例尺與方位",
+    "地理資訊系統 GIS",
+    "遙測與航照",
+  ]),
+  makeCategory("geography", "physical", "自然地理", [
     "地形",
     "氣候",
-    "水文與土壤",
-    "人口與聚落",
-    "產業與經濟活動",
-    "區域地理（台灣與世界）",
-    "環境議題與永續發展",
+    "水文",
+    "土壤與生物分布",
   ]),
-  makeCategory("social", "civics", "公民與社會", [
-    "自我、家庭與社會化",
-    "社會群體與多元文化",
-    "政府與政治制度",
-    "民主與人權",
-    "法律與權利義務",
-    "經濟與市場",
-    "全球化與國際關係",
+  makeCategory("geography", "human", "人文地理", [
+    "人口",
+    "聚落與都市",
+    "第一級產業（農林漁牧）",
+    "第二級產業（工業）",
+    "第三級產業（服務業）",
+    "交通與運輸",
+  ]),
+  makeCategory("geography", "region", "區域地理", [
+    "台灣地理",
+    "中國地理",
+    "亞洲與世界區域",
+  ]),
+  makeCategory("geography", "issue", "應用與議題", [
+    "環境保育",
+    "資源與永續發展",
+    "自然災害",
+    "全球化與區域發展",
   ]),
 ];
 
-export const SUBJECT_TAXONOMY: Record<Subject, TaxonomyCategory[]> = {
+const CIVICS: TaxonomyCategory[] = [
+  makeCategory("civics", "self", "自我與社會", [
+    "個人與社會化",
+    "家庭與婚姻",
+    "社會團體與組織",
+    "多元文化與族群",
+    "性別與平權",
+  ]),
+  makeCategory("civics", "politics", "政治與民主", [
+    "國家與政府",
+    "憲法與政府體制",
+    "民主政治",
+    "政黨與選舉",
+    "人權保障",
+  ]),
+  makeCategory("civics", "law", "法律", [
+    "法律的基本概念",
+    "權利與義務",
+    "民法概要",
+    "刑法概要",
+    "行政與救濟",
+  ]),
+  makeCategory("civics", "economy", "經濟", [
+    "市場與供需",
+    "價格機能",
+    "貨幣與金融",
+    "政府的經濟角色",
+    "國際貿易",
+  ]),
+  makeCategory("civics", "global", "全球關聯", [
+    "全球化",
+    "國際組織與關係",
+    "永續發展",
+    "公民參與",
+  ]),
+];
+
+export const SUBJECT_TAXONOMY: Record<TaxonomySubject, TaxonomyCategory[]> = {
   math: MATH,
   english: ENGLISH,
   chinese: CHINESE,
-  science: SCIENCE,
-  social: SOCIAL,
+  physics: PHYSICS,
+  chemistry: CHEMISTRY,
+  biology: BIOLOGY,
+  earth: EARTH,
+  history: HISTORY,
+  geography: GEOGRAPHY,
+  civics: CIVICS,
 };
 
-export function getTaxonomy(subject: Subject): TaxonomyCategory[] {
+export function getTaxonomy(subject: TaxonomySubject): TaxonomyCategory[] {
   return SUBJECT_TAXONOMY[subject] ?? [];
 }

@@ -14,7 +14,13 @@ import {
   type CurriculumResource,
   SUBJECT_LABEL as CURRICULUM_SUBJECT_LABEL,
 } from "@/lib/curriculum";
-import { getTaxonomy } from "@/lib/subject-taxonomy";
+import {
+  getTaxonomy,
+  TAXONOMY_SUBJECTS,
+  TAXONOMY_SUBJECT_LABEL,
+  TAXONOMY_SUBJECT_TO_COARSE,
+  type TaxonomySubject,
+} from "@/lib/subject-taxonomy";
 import type { NotebookEntry, NotebookEntryWithResource } from "@/lib/notebook";
 
 const RESOURCE_TYPE_LABEL: Record<string, string> = {
@@ -39,7 +45,7 @@ function getPreviewText(resource: CurriculumResource) {
 export default function CurriculumPage() {
   const [grade, setGrade] = useState<SchoolGrade>("G9");
   const [subject, setSubject] = useState<Subject>("math");
-  const [browseSubject, setBrowseSubject] = useState<Subject>("math");
+  const [browseSubject, setBrowseSubject] = useState<TaxonomySubject>("math");
   const [resourceType, setResourceType] = useState<string>("");
   const [search, setSearch] = useState("");
   const [resources, setResources] = useState<CurriculumResource[]>([]);
@@ -58,9 +64,10 @@ export default function CurriculumPage() {
   const [showAiPanel, setShowAiPanel] = useState(false);
 
   const browseCategories = useMemo(() => getTaxonomy(browseSubject), [browseSubject]);
+  const browseCoarseSubject = TAXONOMY_SUBJECT_TO_COARSE[browseSubject];
 
   const handleSelectTopicLabel = (topicLabel: string) => {
-    setSubject(browseSubject);
+    setSubject(browseCoarseSubject);
     setResourceType("");
     setSearch(topicLabel);
     if (typeof window !== "undefined") {
@@ -337,7 +344,7 @@ export default function CurriculumPage() {
         </div>
 
         <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '1.25rem' }}>
-          {ALL_SUBJECTS.map((s) => (
+          {TAXONOMY_SUBJECTS.map((s) => (
             <button
               key={s}
               type="button"
@@ -345,7 +352,7 @@ export default function CurriculumPage() {
               className={s === browseSubject ? 'btn-primary' : 'btn-secondary'}
               style={{ padding: '0.45rem 1rem', fontSize: '0.85rem' }}
             >
-              {SUBJECT_LABEL[s]}
+              {TAXONOMY_SUBJECT_LABEL[s]}
             </button>
           ))}
         </div>
@@ -368,7 +375,7 @@ export default function CurriculumPage() {
               </div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
                 {category.topics.map((topic) => {
-                  const isActive = subject === browseSubject && search === topic.label;
+                  const isActive = subject === browseCoarseSubject && search === topic.label;
                   return (
                     <button
                       key={topic.id}
