@@ -42,9 +42,10 @@ function getPreviewText(resource: CurriculumResource) {
 }
 
 export default function CurriculumPage() {
-  const [grade, setGrade] = useState<SchoolGrade | "">("G9");
+  const [grade, setGrade] = useState<SchoolGrade | "">("");
   const [subject, setSubject] = useState<CurriculumSubject>("math");
   const [browseSubject, setBrowseSubject] = useState<TaxonomySubject>("math");
+  const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
   const [resourceType, setResourceType] = useState<string>("");
   const [search, setSearch] = useState("");
   const [resources, setResources] = useState<CurriculumResource[]>([]);
@@ -65,11 +66,13 @@ export default function CurriculumPage() {
   const browseCategories = useMemo(() => getTaxonomy(browseSubject), [browseSubject]);
   const browseCurriculumSubject = TAXONOMY_SUBJECT_TO_CURRICULUM[browseSubject];
 
+  // 點小類：瀏覽該科目的全部教材（不分年級、不做標題文字搜尋，避免篩不到）
   const handleSelectTopicLabel = (topicLabel: string) => {
     setSubject(browseCurriculumSubject);
     setGrade("");
     setResourceType("");
-    setSearch(topicLabel);
+    setSearch("");
+    setSelectedTopic(topicLabel);
     if (typeof window !== "undefined") {
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
@@ -376,7 +379,7 @@ export default function CurriculumPage() {
               </div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
                 {category.topics.map((topic) => {
-                  const isActive = subject === browseCurriculumSubject && search === topic.label;
+                  const isActive = subject === browseCurriculumSubject && selectedTopic === topic.label;
                   return (
                     <button
                       key={topic.id}
