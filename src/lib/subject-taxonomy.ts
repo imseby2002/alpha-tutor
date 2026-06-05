@@ -1,4 +1,4 @@
-import type { Subject } from "@/lib/education";
+import type { CurriculumSubject } from "@/lib/curriculum";
 
 // 不分年級的科目分類：科目 → 大類（strand）→ 小類（topic）
 // 「自然」與「社會」拆成各自獨立的科目，不再作為單一品項。
@@ -53,18 +53,18 @@ export const TAXONOMY_SUBJECT_LABEL: Record<TaxonomySubject, string> = {
   civics: "公民",
 };
 
-// 對應到課程資源篩選用的粗分類科目
-export const TAXONOMY_SUBJECT_TO_COARSE: Record<TaxonomySubject, Subject> = {
+// 對應到課程資源（curriculum_resources）篩選用的科目代碼
+export const TAXONOMY_SUBJECT_TO_CURRICULUM: Record<TaxonomySubject, CurriculumSubject> = {
   math: "math",
   english: "english",
   chinese: "chinese",
-  physics: "science",
-  chemistry: "science",
-  biology: "science",
-  earth: "science",
-  history: "social",
-  geography: "social",
-  civics: "social",
+  physics: "physics",
+  chemistry: "chemistry",
+  biology: "biology",
+  earth: "earth_science",
+  history: "history",
+  geography: "geography",
+  civics: "civics",
 };
 
 function makeCategory(

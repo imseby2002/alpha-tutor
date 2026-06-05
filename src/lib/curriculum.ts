@@ -18,8 +18,10 @@ export type CurriculumSubject =
   | "physics"
   | "chemistry"
   | "biology"
+  | "earth_science"
   | "geography"
-  | "history";
+  | "history"
+  | "civics";
 
 export const SUBJECT_LABEL: Record<CurriculumSubject, string> = {
   chinese: "國文",
@@ -28,19 +30,23 @@ export const SUBJECT_LABEL: Record<CurriculumSubject, string> = {
   physics: "物理",
   chemistry: "化學",
   biology: "生物",
+  earth_science: "地球科學",
   geography: "地理",
   history: "歷史",
+  civics: "公民",
 };
 
 export const TAIWAN_CORE_SUBJECTS: CurriculumSubject[] = [
-  "chinese",
-  "english",
   "math",
+  "english",
+  "chinese",
   "physics",
   "chemistry",
   "biology",
-  "geography",
+  "earth_science",
   "history",
+  "geography",
+  "civics",
 ];
 
 export const SUBJECTS_BY_COUNTRY: Record<CountryCode, CurriculumSubject[]> = {

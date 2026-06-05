@@ -4,21 +4,20 @@ import { useEffect, useMemo, useState, type ChangeEvent } from "react";
 import Link from "next/link";
 import {
   ALL_GRADES,
-  ALL_SUBJECTS,
   GRADE_LABEL,
-  SUBJECT_LABEL,
   type SchoolGrade,
-  type Subject,
 } from "@/lib/education";
 import {
   type CurriculumResource,
+  type CurriculumSubject,
+  TAIWAN_CORE_SUBJECTS,
   SUBJECT_LABEL as CURRICULUM_SUBJECT_LABEL,
 } from "@/lib/curriculum";
 import {
   getTaxonomy,
   TAXONOMY_SUBJECTS,
   TAXONOMY_SUBJECT_LABEL,
-  TAXONOMY_SUBJECT_TO_COARSE,
+  TAXONOMY_SUBJECT_TO_CURRICULUM,
   type TaxonomySubject,
 } from "@/lib/subject-taxonomy";
 import type { NotebookEntry, NotebookEntryWithResource } from "@/lib/notebook";
@@ -43,8 +42,8 @@ function getPreviewText(resource: CurriculumResource) {
 }
 
 export default function CurriculumPage() {
-  const [grade, setGrade] = useState<SchoolGrade>("G9");
-  const [subject, setSubject] = useState<Subject>("math");
+  const [grade, setGrade] = useState<SchoolGrade | "">("G9");
+  const [subject, setSubject] = useState<CurriculumSubject>("math");
   const [browseSubject, setBrowseSubject] = useState<TaxonomySubject>("math");
   const [resourceType, setResourceType] = useState<string>("");
   const [search, setSearch] = useState("");
@@ -64,10 +63,11 @@ export default function CurriculumPage() {
   const [showAiPanel, setShowAiPanel] = useState(false);
 
   const browseCategories = useMemo(() => getTaxonomy(browseSubject), [browseSubject]);
-  const browseCoarseSubject = TAXONOMY_SUBJECT_TO_COARSE[browseSubject];
+  const browseCurriculumSubject = TAXONOMY_SUBJECT_TO_CURRICULUM[browseSubject];
 
   const handleSelectTopicLabel = (topicLabel: string) => {
-    setSubject(browseCoarseSubject);
+    setSubject(browseCurriculumSubject);
+    setGrade("");
     setResourceType("");
     setSearch(topicLabel);
     if (typeof window !== "undefined") {
@@ -121,7 +121,7 @@ export default function CurriculumPage() {
       try {
         const params = new URLSearchParams();
         params.set("country", DEFAULT_COUNTRY);
-        params.set("grade", grade);
+        if (grade) params.set("grade", grade);
         params.set("subject", subject);
         if (resourceType) params.set("type", resourceType);
         if (search) params.set("search", search);
@@ -282,9 +282,10 @@ export default function CurriculumPage() {
             <span style={{ fontSize: "0.85rem", color: "rgba(255,255,255,0.7)" }}>年級</span>
             <select
               value={grade}
-              onChange={(e) => setGrade(e.target.value as SchoolGrade)}
+              onChange={(e) => setGrade(e.target.value as SchoolGrade | "")}
               style={{ padding: "0.75rem 1rem", borderRadius: "0.75rem", border: "1px solid var(--glass-border)", background: "var(--surface)", color: "white" }}
             >
+              <option value="">全部年級</option>
               {ALL_GRADES.map((g) => (
                 <option key={g} value={g}>
                   {GRADE_LABEL[g]}
@@ -297,12 +298,12 @@ export default function CurriculumPage() {
             <span style={{ fontSize: "0.85rem", color: "rgba(255,255,255,0.7)" }}>科目</span>
             <select
               value={subject}
-              onChange={(e) => setSubject(e.target.value as Subject)}
+              onChange={(e) => setSubject(e.target.value as CurriculumSubject)}
               style={{ padding: "0.75rem 1rem", borderRadius: "0.75rem", border: "1px solid var(--glass-border)", background: "var(--surface)", color: "white" }}
             >
-              {ALL_SUBJECTS.map((s) => (
+              {TAIWAN_CORE_SUBJECTS.map((s) => (
                 <option key={s} value={s}>
-                  {SUBJECT_LABEL[s]}
+                  {CURRICULUM_SUBJECT_LABEL[s]}
                 </option>
               ))}
             </select>
@@ -375,7 +376,7 @@ export default function CurriculumPage() {
               </div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
                 {category.topics.map((topic) => {
-                  const isActive = subject === browseCoarseSubject && search === topic.label;
+                  const isActive = subject === browseCurriculumSubject && search === topic.label;
                   return (
                     <button
                       key={topic.id}
