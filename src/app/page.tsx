@@ -5,6 +5,7 @@ import Link from 'next/link';
 import FocusMonitor from './components/FocusMonitor';
 import MasteryMap from './components/MasteryMap';
 import { StudentLinkCode } from './components/StudentLinkCode';
+import AiLesson from './components/AiLesson';
 import {
   ALL_GRADES,
   ALL_SUBJECTS,
@@ -17,6 +18,12 @@ import {
   getScenario,
   type QuizQuestion,
 } from '@/lib/learning-scenarios';
+import {
+  getTaxonomy,
+  TAXONOMY_SUBJECTS,
+  TAXONOMY_SUBJECT_LABEL,
+  type TaxonomySubject,
+} from '@/lib/subject-taxonomy';
 
 const DIFFICULTY_LABEL: Record<string, string> = {
   Medium: '中等',
@@ -36,6 +43,19 @@ export default function StudentPortal() {
   
   const [mode, setMode] = useState<'diagnostic' | 'teaching' | 'adaptive'>('teaching');
   const [diagnosticStep, setDiagnosticStep] = useState(0);
+
+  const [lessonSubject, setLessonSubject] = useState<TaxonomySubject>('math');
+  const [lessonTopic, setLessonTopic] = useState<string | null>(null);
+  const lessonCategories = useMemo(() => getTaxonomy(lessonSubject), [lessonSubject]);
+
+  const startLesson = (topic: string) => {
+    setLessonTopic(topic);
+    if (typeof window !== 'undefined') {
+      requestAnimationFrame(() => {
+        document.getElementById('ai-lesson')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    }
+  };
 
   const scenario = useMemo(() => getScenario(grade, subject), [grade, subject]);
   const diagnosticQuestion = scenario.diagnostic.questions[diagnosticStep];
@@ -186,6 +206,82 @@ export default function StudentPortal() {
           前往課程內容
         </Link>
       </div>
+
+      <div className="glass-panel" style={{ padding: '1.5rem', marginBottom: '1.5rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '1rem' }}>
+          <h2 style={{ fontSize: '1.15rem', margin: 0 }}>課程選單 · AI 家教上課</h2>
+          <span style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.5)' }}>
+            選一個主題，AI 老師會像家教一樣主動開講（年級：{GRADE_LABEL[grade]}）
+          </span>
+        </div>
+
+        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '1rem' }}>
+          {TAXONOMY_SUBJECTS.map((s) => (
+            <button
+              key={s}
+              type="button"
+              onClick={() => setLessonSubject(s)}
+              className={s === lessonSubject ? 'btn-primary' : 'btn-secondary'}
+              style={{ padding: '0.4rem 0.9rem', fontSize: '0.85rem' }}
+            >
+              {TAXONOMY_SUBJECT_LABEL[s]}
+            </button>
+          ))}
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '0.85rem', alignItems: 'start' }}>
+          {lessonCategories.map((category) => (
+            <div
+              key={category.id}
+              style={{ background: 'var(--surface)', border: '1px solid var(--glass-border)', borderRadius: '0.75rem', padding: '0.9rem' }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.6rem' }}>
+                <span style={{ width: '0.4rem', height: '1rem', borderRadius: '999px', background: 'var(--accent)' }} />
+                <h3 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 700 }}>{category.label}</h3>
+              </div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
+                {category.topics.map((topic) => {
+                  const isActive = lessonTopic === topic.label;
+                  return (
+                    <button
+                      key={topic.id}
+                      type="button"
+                      onClick={() => startLesson(topic.label)}
+                      className="hover-scale"
+                      style={{
+                        background: isActive ? 'rgba(16, 185, 129, 0.25)' : 'rgba(255,255,255,0.04)',
+                        border: `1px solid ${isActive ? 'var(--accent)' : 'var(--glass-border)'}`,
+                        borderRadius: '999px',
+                        padding: '0.3rem 0.7rem',
+                        fontSize: '0.8rem',
+                        cursor: 'pointer',
+                        color: 'white',
+                      }}
+                    >
+                      {topic.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {lessonTopic && (
+        <div id="ai-lesson" className="glass-panel" style={{ padding: '1.5rem', marginBottom: '1.5rem', border: '1px solid var(--accent)' }}>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '0.5rem' }}>
+            <button type="button" className="btn-secondary" style={{ padding: '0.3rem 0.8rem', fontSize: '0.8rem' }} onClick={() => setLessonTopic(null)}>
+              結束上課
+            </button>
+          </div>
+          <AiLesson
+            subjectLabel={TAXONOMY_SUBJECT_LABEL[lessonSubject]}
+            topic={lessonTopic}
+            gradeLabel={GRADE_LABEL[grade]}
+          />
+        </div>
+      )}
 
       <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
         {(['teaching', 'diagnostic', 'adaptive'] as const).map((tab) => (
